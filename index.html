@@ -26,12 +26,19 @@
             background: rgba(255, 255, 255, 0.55);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.4);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, background-color 0.2s ease;
         }
         .glass-card:hover {
-            transform: translateY(-4px);
+            transform: translateY(-2px);
             box-shadow: 0 12px 30px rgba(45, 37, 30, 0.1);
             background: rgba(255, 255, 255, 0.85);
+        }
+        /* 拖曳中樣式 */
+        .glass-card.dragging {
+            opacity: 0.5;
+            transform: scale(0.98);
+            border: 2px dashed #2D251E;
+            background: rgba(255, 255, 255, 0.3);
         }
         .active-tab {
             background: #2D251E;
@@ -150,7 +157,7 @@
                 </div>
                 <div>
                     <p class="text-xs font-bold text-[#2D251E]">四方清算核對公式</p>
-                    <p class="text-[11px] text-[#614D3F] opacity-75" id="formula-description">計算邏輯：最終殘留總額 = 初始餘額 + 累計申請金額 - 累計手續費（修改初始餘額後將即時同步全網）</p>
+                    <p class="text-[11px] text-[#614D3F] opacity-75" id="formula-description">計算邏輯：最終殘留總額 = 初始餘額 + 累計申請金額 - 累計手續費（修改初始餘額與手續費率後將即時同步全網）</p>
                 </div>
             </div>
             
@@ -167,10 +174,13 @@
                     </div>
                 </div>
 
-                <!-- 2. 通道手續費 -->
-                <div class="bg-white/30 p-3 rounded-2xl border border-white/50 text-right min-w-[125px]">
+                <!-- 2. 通道手續費（改為可編輯輸入框，雲端實時同步保存） -->
+                <div class="bg-white/30 p-3 rounded-2xl border border-white/50 text-right min-w-[125px] focus-within:ring-2 focus-within:ring-[#2D251E]/10 transition-all">
                     <span class="text-[10px] text-slate-500 block font-semibold mb-0.5">通道手續費</span>
-                    <span class="text-lg font-bold text-amber-900 font-mono tabular-nums" id="sheet-fee-display">--</span>
+                    <div class="flex items-center justify-end font-mono">
+                        <input type="number" step="0.01" id="detail-fee-rate" onchange="syncFeeRateToCloud(this.value)" value="0.00" class="w-20 bg-transparent text-right text-lg font-bold text-amber-900 outline-none border-b border-transparent hover:border-black/10 focus:border-[#2D251E]">
+                        <span class="text-sm font-extrabold text-amber-900 ml-0.5">%</span>
+                    </div>
                 </div>
 
                 <!-- 3. 最終殘留總額 (放大字體至 text-2xl 確保極致清晰) -->
@@ -190,6 +200,7 @@
                 <div class="flex items-center justify-between mb-4 px-2">
                     <h3 class="text-xs uppercase tracking-wider font-extrabold text-[#614D3F] flex items-center gap-2">
                         <span class="p-1 bg-amber-950/10 rounded-lg">🏠</span> 內部通道 (Internal Channels)
+                        <span class="text-[10px] font-normal text-slate-500 normal-case bg-white/40 px-2 py-0.5 rounded-full">可拖拽排序</span>
                     </h3>
                     <span class="text-xs text-[#614D3F] font-bold opacity-75" id="internal-count">共 -- 個非零通道</span>
                 </div>
@@ -203,6 +214,7 @@
                 <div class="flex items-center justify-between mb-4 px-2">
                     <h3 class="text-xs uppercase tracking-wider font-extrabold text-[#614D3F] flex items-center gap-2">
                         <span class="p-1 bg-amber-800/10 rounded-lg">🌍</span> 外部通道 (External Channels)
+                        <span class="text-[10px] font-normal text-slate-500 normal-case bg-white/40 px-2 py-0.5 rounded-full">可拖拽排序</span>
                     </h3>
                     <span class="text-xs text-[#614D3F] font-bold opacity-75" id="external-count">共 -- 個非零通道</span>
                 </div>
@@ -470,6 +482,7 @@
         window.executeDeleteDetail = executeDeleteDetail;
         window.copyToClipboard = copyToClipboard;
         window.syncInitialBalanceToCloud = syncInitialBalanceToCloud;
+        window.syncFeeRateToCloud = syncFeeRateToCloud;
         window.triggerEditChannel = triggerEditChannel;
         window.closeEditChannelModal = closeEditChannelModal;
         window.executeEditChannelName = executeEditChannelName;
@@ -497,6 +510,7 @@
         let user = null;
         let channelsList = [];
         let recordsList = [];
+        let orderCache = { internal: [], external: [] }; // 用來儲存通道排序快照
 
         let filterZero = true;
         let searchQuery = "";
@@ -551,7 +565,9 @@
                     return;
                 }
 
-                channelsList.sort((a, b) => a.name.localeCompare(b.name, 'zh-TW'));
+                // 優先使用本地快照排序，若快照不存在則依預設名稱拼音字母排序
+                loadLocalOrderCache();
+                sortChannelsWithCache();
 
                 if (!currentSelectedChannelId && channelsList.length > 0) {
                     const defaultCh = channelsList.find(c => c.name === "JJ支付寶" && c.type === "internal") || channelsList[0];
@@ -575,6 +591,53 @@
             });
         }
 
+        // 讀取本地儲存的卡片排序
+        function loadLocalOrderCache() {
+            try {
+                const cacheStr = localStorage.getItem('four_pay_channels_order');
+                if (cacheStr) {
+                    orderCache = JSON.parse(cacheStr);
+                }
+            } catch (e) {
+                console.warn("無法載入本地排序快照", e);
+            }
+        }
+
+        // 儲存當前排序順序至本地
+        function saveLocalOrderCache() {
+            try {
+                const internalIds = Array.from(document.querySelectorAll('#internal-list > [data-id]')).map(el => el.getAttribute('data-id'));
+                const externalIds = Array.from(document.querySelectorAll('#external-list > [data-id]')).map(el => el.getAttribute('data-id'));
+                orderCache = { internal: internalIds, external: externalIds };
+                localStorage.setItem('four_pay_channels_order', JSON.stringify(orderCache));
+            } catch (e) {
+                console.warn("無法儲存排序快照", e);
+            }
+        }
+
+        // 使用本地緩存和字母順序混合排序
+        function sortChannelsWithCache() {
+            const internalSorted = channelsList.filter(c => c.type === 'internal');
+            const externalSorted = channelsList.filter(c => c.type === 'external');
+
+            const sortFunc = (list, cachedIds) => {
+                list.sort((a, b) => {
+                    const indexA = cachedIds ? cachedIds.indexOf(a.id) : -1;
+                    const indexB = cachedIds ? cachedIds.indexOf(b.id) : -1;
+                    
+                    if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+                    if (indexA !== -1) return -1;
+                    if (indexB !== -1) return 1;
+                    return a.name.localeCompare(b.name, 'zh-TW');
+                });
+            };
+
+            sortFunc(internalSorted, orderCache.internal);
+            sortFunc(externalSorted, orderCache.external);
+
+            channelsList = [...internalSorted, ...externalSorted];
+        }
+
         async function seedInitialCloudData() {
             showToast("正在建立全新雲端帳目數據庫...", "info");
             const batch = writeBatch(db);
@@ -583,7 +646,7 @@
               { name: "JJ卡轉卡", type: "internal", icon: "💳", fee: 3.0, initialBalance: 5000.00 },
               { name: "JJ支付寶", type: "internal", icon: "📱", fee: 3.5, initialBalance: 10000.00 },
               { name: "JJ微信", type: "internal", icon: "💬", fee: 5.8, initialBalance: 0.00 },
-              { name: "JJ數位人民幣", type: "internal", icon: "🪙", fee: 2.2, initialBalance: 0.00 },
+              { name: "JJ數位人民幣", type: "internal", icon: "🧧", fee: 2.2, initialBalance: 0.00 },
               { name: "VCOTC支付寶", type: "internal", icon: "🛡️", fee: 0.0, initialBalance: 0.00 },
               { name: "XQ小額卡卡", type: "internal", icon: "⚡", fee: 4.5, initialBalance: 1500.00 },
               { name: "紅喜鵲卡轉卡", type: "internal", icon: "🐦", fee: 3.8, initialBalance: 0.00 },
@@ -772,6 +835,9 @@
             document.getElementById('internal-count').innerText = `共 ${visibleInternalCount} 個非零通道`;
             document.getElementById('external-count').innerText = `共 ${visibleExternalCount} 個非零通道`;
 
+            // 初始化拖曳行為
+            setupDragAndDrop();
+
             if (currentSelectedChannelId) {
                 loadDetailSheet(currentSelectedChannelId);
             }
@@ -779,17 +845,23 @@
 
         function createChannelCard(item) {
             const card = document.createElement('div');
+            card.setAttribute('data-id', item.id);
+            card.setAttribute('draggable', 'true');
             
             let isSelected = (currentSelectedChannelId === item.id);
             let activeBorder = isSelected ? "ring-2 ring-[#2D251E] bg-white/95 shadow-md" : "bg-white/55";
 
-            card.className = `glass-card p-4 rounded-2xl flex items-center justify-between cursor-pointer transition-all relative group ${activeBorder}`;
+            card.className = `glass-card p-4 rounded-2xl flex items-center justify-between cursor-pointer transition-all relative group select-none ${activeBorder}`;
             
             const hasDetail = recordsList.some(r => r.channelId === item.id);
             const hasDetailClass = hasDetail ? "border-l-4 border-[#2D251E]" : "";
             if (hasDetailClass) card.className += " " + hasDetailClass;
 
-            card.onclick = () => {
+            card.onclick = (e) => {
+                // 如果點選到操作按鈕，則不觸發切換明細
+                if (e.target.closest('button')) {
+                    return;
+                }
                 currentSelectedChannelId = item.id;
                 recalculateAndRender();
                 if (hasDetail) {
@@ -800,6 +872,7 @@
                 }
             };
 
+            // 圖示匹配與美化
             let matchedIcon = "🔌";
             const lowerName = item.name.toLowerCase();
             if (lowerName.includes("全通")) matchedIcon = "🌐";
@@ -818,20 +891,23 @@
             else if (lowerName.includes("jj支付寶")) matchedIcon = "📱";
             else if (lowerName.includes("jj卡轉卡")) matchedIcon = "💳";
             else if (lowerName.includes("jj微信")) matchedIcon = "💬";
-            else if (lowerName.includes("jj數位人民幣")) matchedIcon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2-1.343-2-3-2zM12 20c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8z"></path></svg>`;
+            else if (lowerName.includes("jj數位人民幣") || lowerName.includes("數位人民幣") || lowerName.includes("e-cny")) matchedIcon = "🧧";
             else if (lowerName.includes("vcotc支付寶")) matchedIcon = "🛡️";
             else if (lowerName.includes("xq小額卡卡")) matchedIcon = "⚡";
             else if (lowerName.includes("zcpay支付寶")) matchedIcon = "💰";
 
+            // 將原本 p 標籤的 truncate 改成 whitespace-normal break-words 配合 leading-tight，實作完美排版換行
             card.innerHTML = `
-                <div class="flex items-center gap-3 py-1.5 flex-1 min-w-0">
+                <!-- 左側主體 -->
+                <div class="flex items-center gap-3 py-1.5 flex-1 min-w-0 pointer-events-none">
                   <span class="w-9 h-9 rounded-xl bg-white/45 flex items-center justify-center shrink-0 shadow-sm text-lg">${matchedIcon}</span>
-                  <div class="flex-1 min-w-0 pr-2">
-                    <p class="font-extrabold text-sm text-[#2D251E]" title="${item.name}">${item.name}</p>
+                  <div class="flex-1 min-w-0">
+                    <p class="font-extrabold text-sm text-[#2D251E] whitespace-normal break-words leading-tight" title="${item.name}">${item.name}</p>
                   </div>
                 </div>
                 
-                <div class="flex items-center gap-4 shrink-0">
+                <!-- 右側金額與操作功能 -->
+                <div class="flex items-center gap-3 shrink-0">
                   <p class="font-bold text-sm text-[#2D251E] whitespace-nowrap font-mono tabular-nums text-right">${formatMoney(item.amount)}</p>
                   
                   <div class="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -849,6 +925,99 @@
                 </div>
             `;
             return card;
+        }
+
+        // 設置 HTML5 拖拽與觸控支援（優化無手把、全卡片感應拖曳）
+        function setupDragAndDrop() {
+            const lists = [document.getElementById('internal-list'), document.getElementById('external-list')];
+            
+            lists.forEach(container => {
+                if (!container) return;
+
+                const cards = container.querySelectorAll('.glass-card');
+
+                cards.forEach(card => {
+                    // 電腦端 Drag Start - 允許直接在卡片空白處拖動
+                    card.addEventListener('dragstart', (e) => {
+                        // 如果點選到操作按鈕，阻止拖拽行為，以免干擾正常的按鈕點擊
+                        if (e.target.closest('button')) {
+                            e.preventDefault();
+                            return;
+                        }
+                        card.classList.add('dragging');
+                        e.dataTransfer.effectAllowed = 'move';
+                    });
+
+                    // 電腦端 Drag End
+                    card.addEventListener('dragend', () => {
+                        card.classList.remove('dragging');
+                        saveLocalOrderCache();
+                        showToast("通道自定義排序已保存在本地", "success");
+                    });
+
+                    // 手指觸控支持 (Mobile Touch Drag - 全卡拖曳優化版)
+                    let touchStartY = 0;
+                    let targetElement = null;
+
+                    card.addEventListener('touchstart', (e) => {
+                        // 排除按鈕以防干擾點擊
+                        if (!e.target.closest('button')) {
+                            targetElement = card;
+                            targetElement.classList.add('dragging');
+                            touchStartY = e.touches[0].clientY;
+                        }
+                    }, { passive: true });
+
+                    card.addEventListener('touchmove', (e) => {
+                        if (!targetElement) return;
+                        const touchY = e.touches[0].clientY;
+                        const draggingCard = targetElement;
+                        const siblings = [...container.querySelectorAll('.glass-card:not(.dragging)')];
+                        
+                        const nextSibling = siblings.find(sibling => {
+                            const box = sibling.getBoundingClientRect();
+                            return touchY < box.top + box.height / 2;
+                        });
+
+                        if (nextSibling) {
+                            container.insertBefore(draggingCard, nextSibling);
+                        } else {
+                            container.appendChild(draggingCard);
+                        }
+                    }, { passive: false });
+
+                    card.addEventListener('touchend', () => {
+                        if (targetElement) {
+                            targetElement.classList.remove('dragging');
+                            targetElement = null;
+                            saveLocalOrderCache();
+                            showToast("自定義通道順序已保存", "success");
+                        }
+                    });
+                });
+
+                // 容器 Drag Over 邏輯
+                container.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    const draggingCard = document.querySelector('.dragging');
+                    if (!draggingCard) return;
+
+                    // 確保只在同一個分類容器內拖曳
+                    if (draggingCard.parentNode !== container) return;
+
+                    const siblings = [...container.querySelectorAll('.glass-card:not(.dragging)')];
+                    const nextSibling = siblings.find(sibling => {
+                        const box = sibling.getBoundingClientRect();
+                        return e.clientY < box.top + box.height / 2;
+                    });
+
+                    if (nextSibling) {
+                        container.insertBefore(draggingCard, nextSibling);
+                    } else {
+                        container.appendChild(draggingCard);
+                    }
+                });
+            });
         }
 
         let pendingChannelIdToEdit = "";
@@ -952,7 +1121,7 @@
             const tbody = document.getElementById('detail-tbody');
             const title = document.getElementById('selected-detail-title');
             const selector = document.getElementById('sheet-selector');
-            const feeDisplay = document.getElementById('sheet-fee-display');
+            const feeInput = document.getElementById('detail-fee-rate');
             const finalResidualDisplay = document.getElementById('sheet-final-residual-display');
             const initialInput = document.getElementById('detail-initial-balance');
 
@@ -998,8 +1167,8 @@
                         </td>
                         <td class="p-4"><span class="bg-[#2D251E]/5 text-[#2D251E] px-2.5 py-1 rounded-lg font-bold">${row.merchant}</span></td>
                         <td class="p-4 text-slate-600 font-mono select-all tracking-tight">${row.orderNo}</td>
-                        <!-- 手續費數值等寬字體並放大至 text-sm -->
-                        <td class="p-4 text-amber-900 font-bold font-mono text-sm tabular-nums">¥ ${Number(row.fee || 0).toFixed(2)}</td>
+                        <!-- 手續費數值等寬字體，並根據要求顯示至小數點第三位 (.toFixed(3)) -->
+                        <td class="p-4 text-amber-900 font-bold font-mono text-sm tabular-nums">¥ ${Number(row.fee || 0).toFixed(3)}</td>
                         <td class="p-4 text-slate-500 italic">${row.remark || '無'}</td>
                         <!-- 金額數值等寬字體並顯著放大至 text-base -->
                         <td class="p-4 text-right font-extrabold text-[#2D251E] text-base font-mono tabular-nums">¥ ${Number(row.amount || 0).toLocaleString('zh-TW', { minimumFractionDigits: 2 })}</td>
@@ -1015,17 +1184,13 @@
                 });
             }
 
-            // 通道手續費直接顯示原始費率
+            // 通道手續費直接顯示原始費率並填入輸入框
             const rawFee = currentChannel.fee;
-            let displayFee = "--";
+            let numericFee = 0.0;
             if (rawFee !== undefined && rawFee !== null) {
-                if (typeof rawFee === 'number') {
-                    displayFee = `${rawFee}%`;
-                } else {
-                    displayFee = String(rawFee).endsWith('%') ? String(rawFee) : `${rawFee}%`;
-                }
+                numericFee = parseFloat(String(rawFee).replace('%', '')) || 0.0;
             }
-            feeDisplay.innerText = displayFee;
+            feeInput.value = numericFee.toFixed(2);
 
             // 最終殘留總額 = 初始餘額 + 累計申請金額 - 累計手續費（高精度取至小數點第三位）
             const finalResidual = initialBal + sum - totalFee;
@@ -1041,6 +1206,19 @@
                 showToast("初始餘額已同步至雲端資料庫！");
             } catch (err) {
                 console.error("初始餘額同步失敗:", err);
+                showToast("雲端同步失敗，請檢查權限", "error");
+            }
+        }
+
+        async function syncFeeRateToCloud(value) {
+            if (!currentSelectedChannelId) return;
+            const targetFee = parseFloat(value) || 0;
+            try {
+                const channelDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'channels', currentSelectedChannelId);
+                await updateDoc(channelDocRef, { fee: targetFee + "%" });
+                showToast("通道手續費率已同步至雲端資料庫！");
+            } catch (err) {
+                console.error("手續費率同步失敗:", err);
                 showToast("雲端同步失敗，請檢查權限", "error");
             }
         }
@@ -1082,7 +1260,8 @@
                 return;
             }
 
-            const calculatedFee = Number(((amount * feePercent) / 100).toFixed(2));
+            // 手續費計算精確至小數點第三位
+            const calculatedFee = Number(((amount * feePercent) / 100).toFixed(3));
 
             try {
                 const recordsCol = collection(db, 'artifacts', appId, 'public', 'data', 'records');
@@ -1134,7 +1313,7 @@
                         date: new Date().toISOString().split('T')[0],
                         merchant: "INIT_MEMBER",
                         orderNo: "INIT_" + Math.random().toString(36).substr(2, 9).toUpperCase(),
-                        fee: (balance * (fee / 100)).toFixed(2),
+                        fee: Number((balance * (fee / 100)).toFixed(3)),
                         remark: "手動創建通道初始餘額",
                         amount: balance
                     });
@@ -1179,7 +1358,7 @@
 
             let markdownText = `| 交易日期 | 商戶ID | 訂單單號 | 手續費 (¥) | 備註說明 | 申請金額 |\n| --- | --- | --- | --- | --- | --- |\n`;
             associated.forEach(r => {
-                markdownText += `| ${r.date} | ${r.merchant} | ${r.orderNo} | ¥ ${Number(r.fee || 0).toFixed(2)} | ${r.remark} | ¥ ${r.amount} |\n`;
+                markdownText += `| ${r.date} | ${r.merchant} | ${r.orderNo} | ¥ ${Number(r.fee || 0).toFixed(3)} | ${r.remark} | ¥ ${r.amount} |\n`;
             });
 
             const el = document.createElement('textarea');
