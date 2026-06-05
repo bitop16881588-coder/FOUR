@@ -7,110 +7,132 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            /* 莫蘭迪綠調配色：精準對應 image_c4aa05.png */
+            --color-bg: #EAF4F4;             /* 柔霧冰薄荷藍灰 (大面積背景) */
+            --color-card-inactive: #F6FFF8;   /* 暖陽白椰乳 (未啟用卡片底色) */
+            --color-card-active: #A4C3B2;     /* 溫潤鼠尾草綠 (活躍卡片底色) */
+            --color-accent: #CCE3DE;          /* 柔風淡綠 (亮點/表格襯底) */
+            --color-brand: #6B9080;           /* 典雅森林綠 (主色調、按鈕、高亮) */
+            --color-dark: #2F3E36;            /* 深石板森林綠 (最高對比文字/框線/陰影) */
+        }
+
         body {
-            /* 極致健全的系統字體與後備字體棧，確保任何系統、任何版本字型絕不破碎 */
             font-family: 'Outfit', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: radial-gradient(circle at 10% 20%, rgba(222, 194, 171, 1) 0%, rgba(218, 190, 167, 1) 90%);
-            color: #2D251E;
+            background-color: var(--color-bg); 
+            color: var(--color-dark);
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
+
+        /* 霧面玻璃背板質感 */
         .glass-panel {
             background: rgba(255, 255, 255, 0.45);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 20px 50px rgba(45, 37, 30, 0.06);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.55);
         }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.55);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, background-color 0.2s ease;
+
+        /* 靜態未啟用通道卡片 */
+        .glass-card-inactive {
+            background: rgba(246, 255, 248, 0.55) !important;
+            border: 1px solid rgba(107, 144, 128, 0.25) !important;
+            box-shadow: none !important;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .glass-card:hover {
+        .glass-card-inactive:hover {
+            background: rgba(246, 255, 248, 0.85) !important;
+            border-color: var(--color-brand) !important;
             transform: translateY(-2px);
-            box-shadow: 0 12px 30px rgba(45, 37, 30, 0.1);
-            background: rgba(255, 255, 255, 0.85);
         }
-        /* 拖曳中樣式 */
-        .glass-card.dragging {
-            opacity: 0.5;
-            transform: scale(0.98);
-            border: 2px dashed #2D251E;
-            background: rgba(255, 255, 255, 0.3);
+
+        /* 活躍通道：粗邊框與深色實體硬陰影 */
+        .glass-card-active {
+            background: var(--color-card-active) !important;
+            border: 2px solid var(--color-dark) !important;
+            box-shadow: 4px 4px 0px var(--color-dark) !important;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        .glass-card-active:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 5px 5px 0px var(--color-dark) !important;
+        }
+
+        /* 活躍分頁與按鈕 */
         .active-tab {
-            background: #2D251E;
+            background: var(--color-brand);
             color: #FFFFFF;
-            box-shadow: 0 10px 25px rgba(45, 37, 30, 0.15);
+            border: 2px solid var(--color-dark);
+            box-shadow: 3px 3px 0px var(--color-dark);
         }
-        /* 強制套用高精度數值字型，在任何環境下皆不抖動且極致美觀 */
+
+        /* 等寬數據字體 */
         .font-mono {
             font-family: 'JetBrains Mono', 'Courier New', Courier, monospace !important;
         }
+
         .tabular-nums {
             font-variant-numeric: tabular-nums;
         }
-        /* 自定義細滾動條 */
+
+        /* 精緻滾動條 */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
         }
         ::-webkit-scrollbar-thumb {
-            background: rgba(45, 37, 30, 0.25);
+            background: rgba(47, 62, 54, 0.2);
             border-radius: 99px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: rgba(45, 37, 30, 0.45);
+            background: rgba(47, 62, 54, 0.45);
         }
     </style>
 </head>
 <body class="min-h-screen pb-16">
 
-    <!-- 頂部精緻導航 -->
-    <nav class="max-w-7xl mx-auto px-4 pt-6 md:pt-10 mb-8">
-        <div class="glass-panel px-6 py-5 rounded-[2rem] flex flex-wrap lg:flex-nowrap gap-6 justify-between items-center">
+    <nav class="max-w-7xl mx-auto px-4 pt-6 md:pt-8 mb-6">
+        <div class="glass-panel px-6 py-4 rounded-[1.5rem] flex flex-wrap lg:flex-nowrap gap-4 justify-between items-center border-2 border-[#2F3E36]/10">
             
             <!-- Logo & 標題區 -->
-            <div class="flex items-center gap-4 shrink-0">
-                <div class="w-11 h-11 rounded-2xl bg-[#2D251E] flex items-center justify-center text-white font-bold text-xl shadow-lg">
+            <div class="flex items-center gap-3 shrink-0">
+                <div class="w-10 h-10 rounded-xl bg-[#2F3E36] flex items-center justify-center text-white font-bold text-lg shadow-md">
                     四
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold tracking-tight text-[#2D251E]">四方殘留暫存主控台</h1>
-                    <p class="text-xs text-[#614D3F] font-semibold opacity-75">MULTIPLE COLLABORATIVE AUDIT PANEL</p>
+                    <h1 class="text-base font-bold tracking-tight text-[#2F3E36]">四方殘留暫存主控台</h1>
+                    <p class="text-[10px] text-[#2F3E36]/75 font-semibold tracking-wider">MULTIPLE COLLABORATIVE AUDIT PANEL</p>
                 </div>
             </div>
 
-            <!-- 整合式控制元件區 -->
-            <div class="flex flex-wrap items-center gap-4 w-full lg:w-auto justify-start lg:justify-end">
+            <!-- 控制元件區 -->
+            <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-start lg:justify-end">
                 
-                <!-- 整合式搜尋框 -->
-                <div class="relative w-full sm:w-52">
-                    <input type="text" id="search-input" placeholder="搜尋特定渠道..." class="w-full bg-white/60 focus:bg-white text-xs px-4 py-2.5 pl-9 rounded-xl border border-white/60 outline-none focus:ring-2 focus:ring-[#2D251E]/20 transition-all text-[#2D251E] placeholder-[#614D3F]/50">
-                    <span class="absolute left-3 top-3.5 text-xs text-[#614D3F]/60">
+                <!-- 搜尋框 -->
+                <div class="relative w-full sm:w-44">
+                    <input type="text" id="search-input" placeholder="搜尋特定渠道..." class="w-full bg-white/60 focus:bg-white text-xs px-3 py-2 pl-8 rounded-xl border border-[#2F3E36]/20 outline-none focus:ring-2 focus:ring-[#6B9080]/30 transition-all text-[#2F3E36] placeholder-[#2F3E36]/50">
+                    <span class="absolute left-2.5 top-3 text-xs text-[#2F3E36]/60">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </span>
                 </div>
 
-                <!-- 整合式隱藏零餘額開關 -->
-                <div class="flex items-center gap-3 px-3.5 py-2 bg-white/20 rounded-xl border border-white/30 shrink-0">
-                    <span class="text-xs font-semibold text-[#2D251E] flex items-center gap-1.5 whitespace-nowrap">
+                <!-- 隱藏零餘額開關 -->
+                <div class="flex items-center gap-2.5 px-3 py-1.5 bg-white/30 rounded-xl border border-[#2F3E36]/10 shrink-0">
+                    <span class="text-xs font-semibold text-[#2F3E36] flex items-center gap-1">
                         🚫 隱藏零餘額
                     </span>
-                    <button id="toggle-zero" class="w-10 h-5.5 rounded-full bg-[#2D251E] p-0.5 transition-colors focus:outline-none relative">
-                        <div class="w-4 h-4 rounded-full bg-white shadow-md transform translate-x-4 transition-transform" id="toggle-ball"></div>
+                    <button id="toggle-zero" class="w-8 h-5 rounded-full bg-slate-300 p-0.5 transition-colors focus:outline-none relative">
+                        <div class="w-4 h-4 rounded-full bg-white shadow-md transform translate-x-0 transition-transform" id="toggle-ball"></div>
                     </button>
                 </div>
 
                 <!-- 新增通道按鈕 -->
-                <button onclick="openAddChannelModal()" class="bg-[#2D251E] hover:bg-[#43372c] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-sm flex items-center gap-1.5 shrink-0">
+                <button onclick="openAddChannelModal()" class="bg-[#2F3E36] hover:bg-[#6B9080] text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow-sm flex items-center gap-1 shrink-0 border border-[#2F3E36]">
                     <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
                     </svg>
@@ -118,12 +140,12 @@
                 </button>
 
                 <!-- 雲端同步狀態標籤 -->
-                <div class="flex items-center gap-2 shrink-0 bg-emerald-100/70 px-4 py-2 rounded-xl border border-emerald-200">
-                    <span class="flex h-2.5 w-2.5 relative">
-                        <span id="cloud-status-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span id="cloud-status-dot" class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                <div class="flex items-center gap-2 shrink-0 bg-[#CCE3DE] px-3 py-2 rounded-xl border border-[#6B9080]/30">
+                    <span class="flex h-2 w-2 relative">
+                        <span id="cloud-status-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#6B9080] opacity-75"></span>
+                        <span id="cloud-status-dot" class="relative inline-flex rounded-full h-2 w-2 bg-[#2F3E36]"></span>
                     </span>
-                    <span id="cloud-status-text" class="text-xs font-bold text-emerald-900 whitespace-nowrap">
+                    <span id="cloud-status-text" class="text-[10px] font-bold text-[#2F3E36] whitespace-nowrap">
                         雲端連線中...
                     </span>
                 </div>
@@ -136,58 +158,55 @@
     <!-- 主要工作區 -->
     <main class="max-w-7xl mx-auto px-4 space-y-6">
 
-        <!-- 工作表選單 Tab -->
-        <div class="glass-panel p-2 rounded-2xl flex gap-2 overflow-x-auto">
-            <button onclick="switchMainTab('summary')" id="tab-btn-summary" class="whitespace-nowrap px-6 py-2.5 rounded-xl text-xs font-bold transition-all active-tab">
+        <div class="glass-panel p-1.5 rounded-2xl flex gap-1.5 overflow-x-auto border border-[#2F3E36]/10">
+            <button onclick="switchMainTab('summary')" id="tab-btn-summary" class="whitespace-nowrap px-5 py-2 rounded-xl text-xs font-bold transition-all active-tab">
                 📊 殘留餘額總覽
             </button>
-            <button onclick="switchMainTab('details')" id="tab-btn-details" class="whitespace-nowrap px-6 py-2.5 rounded-xl text-xs font-bold transition-all text-[#2D251E] hover:bg-white/40">
+            <button onclick="switchMainTab('details')" id="tab-btn-details" class="whitespace-nowrap px-5 py-2 rounded-xl text-xs font-bold transition-all text-[#2F3E36] hover:bg-white/40">
                 📂 詳細殘留明細
             </button>
         </div>
 
-        <!-- 精美計算公式卡（預設隱藏，僅在切換至明細頁時展示） -->
-        <div id="accounting-formula-card" class="p-5 bg-white/45 rounded-3xl border border-white/40 flex flex-col lg:flex-row items-center justify-between gap-5 shadow-sm hidden">
+        <!-- 聯動核對公式卡（明細模式顯示） -->
+        <div id="accounting-formula-card" class="p-4 bg-white/40 rounded-2xl border border-[#2F3E36]/15 flex flex-col lg:flex-row items-center justify-between gap-4 shadow-sm hidden">
             <div class="flex items-center gap-3 w-full lg:w-auto">
-                <div class="w-10 h-10 rounded-2xl bg-[#2D251E]/5 flex items-center justify-center text-[#2D251E] shrink-0">
-                    <svg class="w-5 h-5 text-[#2D251E]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <div class="w-9 h-9 rounded-xl bg-[#2F3E36]/10 flex items-center justify-center text-[#2F3E36] shrink-0">
+                    <svg class="w-4 h-4 text-[#2F3E36]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.43l-1.003.828c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.829c.424.35.53.954.26 1.43l-1.297 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.43l1.004-.829c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.991l-1.004-.829a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.645-.869l.214-1.28z"></path>
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                     </svg>
                 </div>
                 <div>
-                    <p class="text-xs font-bold text-[#2D251E]">四方清算核對公式</p>
-                    <p class="text-[11px] text-[#614D3F] opacity-75" id="formula-description">計算邏輯：最終殘留總額 = 初始餘額 + 累計申請金額 - 累計手續費（修改初始餘額與手續費率後將即時同步全網）</p>
+                    <p class="text-xs font-bold text-[#2F3E36]">四方清算核對公式</p>
+                    <p class="text-[10px] text-[#2F3E36]/75" id="formula-description">計算邏輯：最終殘留總額 = 初始餘額 + 累計申請金額 - 累計手續費（實時同步）</p>
                 </div>
             </div>
             
-            <!-- 聯動框格對賬區 -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full lg:w-auto shrink-0 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full lg:w-auto shrink-0 text-xs">
                 
-                <!-- 1. 初始餘額（可交互修改，雲端實時保存） -->
-                <div class="bg-white/40 p-3 rounded-2xl border border-[#2D251E]/15 text-right min-w-[125px] focus-within:ring-2 focus-within:ring-[#2D251E]/10 transition-all">
-                    <span class="text-[10px] text-slate-500 block font-semibold mb-0.5">初始餘額</span>
+                <!-- 1. 初始餘額 -->
+                <div class="bg-white/40 p-2.5 rounded-xl border border-[#2F3E36]/25 text-right min-w-[110px] focus-within:ring-2 focus-within:ring-[#6B9080]/20 transition-all">
+                    <span class="text-[9px] text-[#2F3E36]/80 block font-semibold mb-0.5">初始餘額</span>
                     <div class="flex items-center justify-end font-mono">
-                        <span class="text-sm font-extrabold text-[#2D251E] mr-0.5">¥</span>
-                        <!-- 放大輸入框數字字型大小與套用 JetBrains Mono -->
-                        <input type="number" step="0.001" id="detail-initial-balance" onchange="syncInitialBalanceToCloud(this.value)" value="0.000" class="w-28 bg-transparent text-right text-lg font-bold text-[#2D251E] outline-none border-b border-transparent hover:border-black/10 focus:border-[#2D251E]">
+                        <span class="text-xs font-extrabold text-[#2F3E36] mr-0.5">¥</span>
+                        <input type="number" step="0.001" id="detail-initial-balance" onchange="syncInitialBalanceToCloud(this.value)" value="0.000" class="w-24 bg-transparent text-right text-base font-bold text-[#2F3E36] outline-none border-b border-transparent hover:border-[#2F3E36]/20 focus:border-[#2F3E36]">
                     </div>
                 </div>
 
-                <!-- 2. 通道手續費（改為可編輯輸入框，雲端實時同步保存） -->
-                <div class="bg-white/30 p-3 rounded-2xl border border-white/50 text-right min-w-[125px] focus-within:ring-2 focus-within:ring-[#2D251E]/10 transition-all">
-                    <span class="text-[10px] text-slate-500 block font-semibold mb-0.5">通道手續費</span>
+                <!-- 2. 通道手續費 -->
+                <div class="bg-white/30 p-2.5 rounded-xl border border-white/50 text-right min-w-[110px] focus-within:ring-2 focus-within:ring-[#6B9080]/20 transition-all">
+                    <span class="text-[9px] text-[#2F3E36]/80 block font-semibold mb-0.5">通道手續費</span>
                     <div class="flex items-center justify-end font-mono">
-                        <input type="number" step="0.01" id="detail-fee-rate" onchange="syncFeeRateToCloud(this.value)" value="0.00" class="w-20 bg-transparent text-right text-lg font-bold text-amber-900 outline-none border-b border-transparent hover:border-black/10 focus:border-[#2D251E]">
-                        <span class="text-sm font-extrabold text-amber-900 ml-0.5">%</span>
+                        <input type="number" step="0.01" id="detail-fee-rate" onchange="syncFeeRateToCloud(this.value)" value="0.00" class="w-16 bg-transparent text-right text-base font-bold text-[#2F3E36] outline-none border-b border-transparent hover:border-[#2F3E36]/20 focus:border-[#2F3E36]">
+                        <span class="text-xs font-extrabold text-[#2F3E36] ml-0.5">%</span>
                     </div>
                 </div>
 
-                <!-- 3. 最終殘留總額 (放大字體至 text-2xl 確保極致清晰) -->
-                <div class="bg-[#2D251E] text-white p-3 rounded-2xl border border-black/20 text-right min-w-[135px] shadow-md relative overflow-hidden">
-                    <div class="absolute -right-2 -bottom-2 text-3xl opacity-5">🏆</div>
-                    <span class="text-[10px] block font-semibold text-slate-300 mb-0.5">最終殘留總額</span>
-                    <span class="text-2xl font-bold font-mono tabular-nums" id="sheet-final-residual-display">¥0.000</span>
+                <!-- 3. 最終殘留總額 -->
+                <div class="bg-[#2F3E36] text-white p-2.5 rounded-xl border border-black/10 text-right min-w-[120px] shadow-md relative overflow-hidden">
+                    <div class="absolute -right-2 -bottom-2 text-2xl opacity-10">🏆</div>
+                    <span class="text-[9px] block font-semibold text-slate-200 mb-0.5">最終殘留總額</span>
+                    <span class="text-xl font-bold font-mono tabular-nums" id="sheet-final-residual-display">¥0.000</span>
                 </div>
 
             </div>
@@ -195,47 +214,60 @@
 
         <!-- 主Tab 1: 總覽卡片網格 -->
         <div id="main-tab-summary" class="space-y-6">
+            
             <!-- 內部通道 -->
             <div>
                 <div class="flex items-center justify-between mb-4 px-2">
-                    <h3 class="text-xs uppercase tracking-wider font-extrabold text-[#614D3F] flex items-center gap-2">
-                        <span class="p-1 bg-amber-950/10 rounded-lg">🏠</span> 內部通道 (Internal Channels)
-                        <span class="text-[10px] font-normal text-slate-500 normal-case bg-white/40 px-2 py-0.5 rounded-full">可拖拽排序</span>
-                    </h3>
-                    <span class="text-xs text-[#614D3F] font-bold opacity-75" id="internal-count">共 -- 個非零通道</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[#2F3E36] font-extrabold text-sm flex items-center gap-1.5">
+                            🏠 內部通道 (INTERNAL CHANNELS)
+                        </span>
+                        <span class="text-[10px] bg-white/60 text-[#2F3E36]/80 px-2 py-0.5 rounded-full font-bold shadow-sm border border-[#6B9080]/30 select-none animate-pulse">
+                            可拖拽排序
+                        </span>
+                    </div>
+                    <span class="text-xs text-[#2F3E36]/70 font-bold" id="internal-count">共 -- 個非零通道</span>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="internal-list">
+                <!-- 網格與大尺寸卡片 -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 items-stretch" id="internal-list">
                     <!-- 內部通道動態載入 -->
                 </div>
             </div>
 
             <!-- 外部通道 -->
-            <div class="pt-4">
+            <div class="pt-2">
                 <div class="flex items-center justify-between mb-4 px-2">
-                    <h3 class="text-xs uppercase tracking-wider font-extrabold text-[#614D3F] flex items-center gap-2">
-                        <span class="p-1 bg-amber-800/10 rounded-lg">🌍</span> 外部通道 (External Channels)
-                        <span class="text-[10px] font-normal text-slate-500 normal-case bg-white/40 px-2 py-0.5 rounded-full">可拖拽排序</span>
-                    </h3>
-                    <span class="text-xs text-[#614D3F] font-bold opacity-75" id="external-count">共 -- 個非零通道</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[#2F3E36] font-extrabold text-sm flex items-center gap-1.5">
+                            🌍 外部通道 (EXTERNAL CHANNELS)
+                        </span>
+                        <span class="text-[10px] bg-white/60 text-[#2F3E36]/80 px-2 py-0.5 rounded-full font-bold shadow-sm border border-[#6B9080]/30 select-none animate-pulse">
+                            可拖拽排序
+                        </span>
+                    </div>
+                    <span class="text-xs text-[#2F3E36]/70 font-bold" id="external-count">共 -- 個非零通道</span>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="external-list">
+                <!-- 網格與大尺寸卡片 -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 items-stretch" id="external-list">
                     <!-- 外部通道動態載入 -->
                 </div>
             </div>
         </div>
 
-        <!-- 主Tab 2: 明細數據表格 -->
-        <div id="main-tab-details" class="glass-panel p-6 rounded-[2.5rem] space-y-6 hidden">
+        <div id="main-tab-details" class="glass-panel p-6 rounded-[2rem] space-y-6 hidden border border-[#2F3E36]/15">
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                    <h3 class="text-lg font-bold text-[#2D251E]" id="selected-detail-title">明細篩選與核對</h3>
-                    <p class="text-xs text-[#614D3F] opacity-85">您可以點擊總覽中的任意通道，或在此下拉切換工作表。</p>
+                    <h3 class="text-base font-bold text-[#2F3E36]" id="selected-detail-title">明細篩選與核對</h3>
+                    <p class="text-xs text-[#2F3E36]/80">您可以點擊總覽中的任意通道，或在此下拉切換工作表。</p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <select id="sheet-selector" onchange="loadDetailSheet(this.value)" class="bg-white/80 text-xs font-bold px-4 py-2.5 rounded-xl border border-white/60 outline-none text-[#2D251E]">
+                <div class="flex items-center gap-2.5">
+                    <button onclick="copyToClipboard()" class="bg-white/60 hover:bg-white text-[#2F3E36] text-xs font-bold px-3 py-2 rounded-xl transition shadow-sm border border-white/80 shrink-0">
+                        📋 複製對帳 MD
+                    </button>
+                    <select id="sheet-selector" onchange="loadDetailSheet(this.value)" class="bg-white/80 text-xs font-bold px-3 py-2 rounded-xl border border-white/60 outline-none text-[#2F3E36]">
                         <!-- 下拉選項 -->
                     </select>
-                    <button onclick="openAddDetailModal()" class="bg-[#2D251E] hover:bg-[#43372c] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-sm flex items-center gap-1.5">
+                    <button onclick="openAddDetailModal()" class="bg-[#2F3E36] hover:bg-[#6B9080] text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow-sm flex items-center gap-1 border border-[#2F3E36]">
                         <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
                         </svg>
@@ -245,20 +277,20 @@
             </div>
 
             <!-- 數據表格 -->
-            <div class="overflow-x-auto rounded-2xl border border-white/40 bg-white/20">
+            <div class="overflow-x-auto rounded-xl border border-[#2F3E36]/15 bg-white/20">
                 <table class="w-full text-left border-collapse text-xs">
                     <thead>
-                        <tr class="bg-white/50 text-[#2D251E] font-bold border-b border-white/40">
-                            <th class="p-4">交易日期</th>
-                            <th class="p-4">商戶名/ID</th>
-                            <th class="p-4">商戶單號 / 系統單號</th>
-                            <th class="p-4">手續費 (¥)</th>
-                            <th class="p-4">狀態/備註</th>
-                            <th class="p-4 text-right">申請金額 (¥)</th>
-                            <th class="p-4 text-center">操作</th>
+                        <tr class="bg-white/50 text-[#2F3E36] font-bold border-b border-[#2F3E36]/15">
+                            <th class="p-3.5">交易日期</th>
+                            <th class="p-3.5">商戶名/ID</th>
+                            <th class="p-3.5">商戶單號 / 系統單號</th>
+                            <th class="p-3.5">手續費 (¥)</th>
+                            <th class="p-3.5">狀態/備註</th>
+                            <th class="p-3.5 text-right">申請金額 (¥)</th>
+                            <th class="p-3.5 text-center">操作</th>
                         </tr>
                     </thead>
-                    <tbody id="detail-tbody" class="divide-y divide-white/10 text-slate-800 font-medium">
+                    <tbody id="detail-tbody" class="divide-y divide-[#2F3E36]/10 text-[#2F3E36] font-medium">
                         <!-- 動態載入表格 -->
                     </tbody>
                 </table>
@@ -267,18 +299,19 @@
 
     </main>
 
+    <!-- 編輯通道 Modal -->
     <div id="edit-channel-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="glass-panel p-6 rounded-[2.5rem] w-full max-w-sm shadow-2xl relative">
-            <button onclick="closeEditChannelModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition">✕</button>
-            <h3 class="text-sm font-bold text-[#2D251E] mb-4 flex items-center gap-2">
+        <div class="glass-panel p-6 rounded-[2rem] w-full max-w-sm shadow-2xl relative border-2 border-[#2F3E36]">
+            <button onclick="closeEditChannelModal()" class="absolute top-4 right-4 text-[#2F3E36] hover:text-[#2F3E36]/60 transition">✕</button>
+            <h3 class="text-sm font-bold text-[#2F3E36] mb-4 flex items-center gap-2">
                 ✏️ 修改通道名稱
             </h3>
-            <input type="text" id="edit-channel-name-input" class="w-full bg-white/60 focus:bg-white p-3 rounded-xl border border-white/60 outline-none text-xs font-semibold mb-5 focus:ring-2 focus:ring-[#2D251E]/20" placeholder="請輸入新通道名稱" required>
+            <input type="text" id="edit-channel-name-input" class="w-full bg-white/60 focus:bg-white p-3 rounded-xl border border-[#2F3E36]/20 outline-none text-xs font-semibold mb-5 focus:ring-2 focus:ring-[#6B9080]/30" placeholder="請輸入新通道名稱" required>
             <div class="flex gap-3 text-xs">
-                <button onclick="closeEditChannelModal()" class="flex-1 bg-white/40 hover:bg-white/60 py-3 rounded-xl font-bold transition">
+                <button onclick="closeEditChannelModal()" class="flex-1 bg-white/40 hover:bg-white/60 py-3 rounded-xl font-bold transition border border-[#2F3E36]/20">
                     取消
                 </button>
-                <button onclick="executeEditChannelName()" class="flex-1 bg-[#2D251E] hover:bg-black text-white py-3 rounded-xl font-bold transition shadow-md">
+                <button onclick="executeEditChannelName()" class="flex-1 bg-[#2F3E36] hover:bg-black text-white py-3 rounded-xl font-bold transition shadow-md border border-[#2F3E36]">
                     儲存修改
                 </button>
             </div>
@@ -287,21 +320,21 @@
 
     <!-- 刪除通道確認 Modal -->
     <div id="delete-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="glass-panel p-6 rounded-[2.5rem] w-full max-w-sm shadow-2xl relative text-center">
-            <button onclick="closeDeleteModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition">✕</button>
-            <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+        <div class="glass-panel p-6 rounded-[2rem] w-full max-w-sm shadow-2xl relative text-center border-2 border-[#2F3E36]">
+            <button onclick="closeDeleteModal()" class="absolute top-4 right-4 text-[#2F3E36] hover:text-[#2F3E36]/60 transition">✕</button>
+            <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold border border-red-300">
                 ⚠️
             </div>
-            <h3 class="text-base font-bold text-[#2D251E] mb-2">確認要刪除通道嗎？</h3>
-            <p class="text-xs text-[#614D3F] opacity-80 mb-6 leading-relaxed">
+            <h3 class="text-base font-bold text-[#2F3E36] mb-2">確認要刪除通道嗎？</h3>
+            <p class="text-xs text-[#2F3E36]/80 mb-6 leading-relaxed">
                 確定要移除 <span id="delete-target-name" class="font-extrabold text-red-600"></span> 嗎？<br>
                 此動作將同時清除其相關的對賬明細並同步全網。
             </p>
             <div class="flex gap-3 text-xs">
-                <button onclick="closeDeleteModal()" class="flex-1 bg-white/40 hover:bg-white/60 py-3 rounded-xl font-bold transition">
+                <button onclick="closeDeleteModal()" class="flex-1 bg-white/40 hover:bg-white/60 py-3 rounded-xl font-bold transition border border-[#2F3E36]/20">
                     取消
                 </button>
-                <button onclick="executeDelete()" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold transition shadow-md">
+                <button onclick="executeDelete()" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold transition shadow-md border border-red-700">
                     確認刪除
                 </button>
             </div>
@@ -310,27 +343,21 @@
 
     <!-- 刪除單筆明細確認 Modal -->
     <div id="delete-detail-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="glass-panel p-6 rounded-[2.5rem] w-full max-w-sm shadow-2xl relative text-center">
-            <button onclick="closeDeleteDetailModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition">
-                <svg class="w-4 h-4 text-slate-400 hover:text-slate-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
-            <div class="w-11 h-11 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center mx-auto mb-3">
-                <svg class="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                </svg>
+        <div class="glass-panel p-6 rounded-[2rem] w-full max-w-sm shadow-2xl relative text-center border-2 border-[#2F3E36]">
+            <button onclick="closeDeleteDetailModal()" class="absolute top-4 right-4 text-[#2F3E36] hover:text-[#2F3E36]/60 transition">✕</button>
+            <div class="w-11 h-11 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center mx-auto mb-3 border border-amber-300">
+                ⚠️
             </div>
-            <h3 class="text-base font-bold text-[#2D251E] mb-1">確認刪除此筆交易？</h3>
-            <p class="text-xs text-[#614D3F] opacity-80 mb-5 leading-relaxed">
+            <h3 class="text-base font-bold text-[#2F3E36] mb-1">確認刪除此筆交易？</h3>
+            <p class="text-xs text-[#2F3E36]/80 mb-5 leading-relaxed">
                 將從目前通道中移除該筆對賬流水。<br>
                 刪除後全網金額將會即時進行扣減更新。
             </p>
             <div class="flex gap-3 text-xs">
-                <button onclick="closeDeleteDetailModal()" class="flex-1 bg-white/40 hover:bg-white/60 py-2.5 rounded-xl font-bold transition">
+                <button onclick="closeDeleteDetailModal()" class="flex-1 bg-white/40 hover:bg-white/60 py-2.5 rounded-xl font-bold transition border border-[#2F3E36]/20">
                     取消
                 </button>
-                <button onclick="executeDeleteDetail()" class="flex-1 bg-[#2D251E] hover:bg-black text-white py-2.5 rounded-xl font-bold transition shadow-md">
+                <button onclick="executeDeleteDetail()" class="flex-1 bg-[#2F3E36] hover:bg-black text-white py-2.5 rounded-xl font-bold transition shadow-md border border-[#2F3E36]">
                     確認移除
                 </button>
             </div>
@@ -339,61 +366,54 @@
 
     <!-- 新增單筆明細 Modal -->
     <div id="add-detail-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="glass-panel p-6 rounded-[2.5rem] w-full max-w-md shadow-2xl relative">
-            <button onclick="closeAddDetailModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 transition">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
+        <div class="glass-panel p-6 rounded-[2rem] w-full max-w-md shadow-2xl relative border-2 border-[#2F3E36]">
+            <button onclick="closeAddDetailModal()" class="absolute top-5 right-5 text-[#2F3E36] hover:text-[#2F3E36]/60 transition">✕</button>
             
             <div class="flex items-center gap-3 mb-4">
-                <div class="w-9 h-9 bg-[#2D251E] text-white rounded-xl flex items-center justify-center">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"></path>
-                    </svg>
+                <div class="w-9 h-9 bg-[#2F3E36] text-white rounded-xl flex items-center justify-center">
+                    ✏️
                 </div>
                 <div>
-                    <h3 class="text-sm font-bold text-[#2D251E]">新增明細流水帳目</h3>
-                    <p class="text-[11px] text-[#614D3F] opacity-75">手動追加一筆交易帳目，雲端系統將進行秒級多端同步</p>
+                    <h3 class="text-sm font-bold text-[#2F3E36]">新增明細流水帳目</h3>
+                    <p class="text-[11px] text-[#2F3E36]/75">手動追加一筆交易帳目，雲端系統將進行秒級多端同步</p>
                 </div>
             </div>
 
             <form id="add-detail-form" onsubmit="handleAddDetailSubmit(event)" class="space-y-4 text-xs">
                 <div>
-                    <label class="block font-bold text-[#2D251E] mb-1">交易日期</label>
-                    <input type="date" id="new-detail-date" class="w-full bg-white/60 focus:bg-white p-2.5 rounded-xl border border-white/60 outline-none" required>
+                    <label class="block font-bold text-[#2F3E36] mb-1">交易日期</label>
+                    <input type="date" id="new-detail-date" class="w-full bg-white/60 focus:bg-white p-2.5 rounded-xl border border-[#2F3E36]/20 outline-none" required>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block font-bold text-[#2D251E] mb-1">商戶名/ID</label>
-                        <input type="text" id="new-detail-merchant" placeholder="如: ND168NB" class="w-full bg-white/60 focus:bg-white p-2.5 rounded-xl border border-white/60 outline-none" required>
+                        <label class="block font-bold text-[#2F3E36] mb-1">商戶名/ID</label>
+                        <input type="text" id="new-detail-merchant" placeholder="如: ND168NB" class="w-full bg-white/60 focus:bg-white p-2.5 rounded-xl border border-[#2F3E36]/20 outline-none" required>
                     </div>
                     <div>
-                        <label class="block font-bold text-[#2D251E] mb-1">商戶單號 / 系統單號</label>
-                        <input type="text" id="new-detail-orderno" placeholder="如: KRI_1602114" class="w-full bg-white/60 focus:bg-white p-2.5 rounded-xl border border-white/60 outline-none" required>
+                        <label class="block font-bold text-[#2F3E36] mb-1">商戶單號 / 系統單號</label>
+                        <input type="text" id="new-detail-orderno" placeholder="如: KRI_1602114" class="w-full bg-white/60 focus:bg-white p-2.5 rounded-xl border border-[#2F3E36]/20 outline-none" required>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <!-- 將原本的手續費輸入框修改為手續費率百分比輸入框 -->
-                        <label class="block font-bold text-[#2D251E] mb-1">手續費率 (%)</label>
-                        <input type="number" step="0.01" id="new-detail-fee-percent" placeholder="3.50" class="w-full bg-white/60 focus:bg-white p-2.5 rounded-xl border border-white/60 outline-none" required>
+                        <label class="block font-bold text-[#2F3E36] mb-1">手續費率 (%)</label>
+                        <input type="number" step="0.01" id="new-detail-fee-percent" placeholder="3.50" class="w-full bg-white/60 focus:bg-white p-2.5 rounded-xl border border-[#2F3E36]/20 outline-none" required>
                     </div>
                     <div>
-                        <label class="block font-bold text-[#2D251E] mb-1">申請金額 (¥)</label>
-                        <input type="number" step="0.01" id="new-detail-amount" placeholder="0.00" class="w-full bg-white/60 focus:bg-white p-2.5 rounded-xl border border-white/60 outline-none" required>
+                        <label class="block font-bold text-[#2F3E36] mb-1">申請金額 (¥)</label>
+                        <input type="number" step="0.01" id="new-detail-amount" placeholder="0.00" class="w-full bg-white/60 focus:bg-white p-2.5 rounded-xl border border-[#2F3E36]/20 outline-none" required>
                     </div>
                 </div>
                 <div>
-                    <label class="block font-bold text-[#2D251E] mb-1">狀態 / 系統備註</label>
-                    <input type="text" id="new-detail-remark" placeholder="如: 常規流水殘留" class="w-full bg-white/60 focus:bg-white p-2.5 rounded-xl border border-white/60 outline-none">
+                    <label class="block font-bold text-[#2F3E36] mb-1">狀態 / 系統備註</label>
+                    <input type="text" id="new-detail-remark" placeholder="如: 常規流水殘留" class="w-full bg-white/60 focus:bg-white p-2.5 rounded-xl border border-[#2F3E36]/20 outline-none">
                 </div>
 
                 <div class="flex gap-3 pt-2">
-                    <button type="button" onclick="closeAddDetailModal()" class="flex-1 bg-white/40 hover:bg-white/60 py-3 rounded-xl font-bold transition">
+                    <button type="button" onclick="closeAddDetailModal()" class="flex-1 bg-white/40 hover:bg-white/60 py-3 rounded-xl font-bold transition border border-[#2F3E36]/20">
                         取消
                     </button>
-                    <button type="submit" class="flex-1 bg-[#2D251E] hover:bg-[#43372c] text-white py-3 rounded-xl font-bold transition shadow-md">
+                    <button type="submit" class="flex-1 bg-[#2F3E36] hover:bg-[#6B9080] text-white py-3 rounded-xl font-bold transition shadow-md border border-[#2F3E36]">
                         儲存並同步雲端
                     </button>
                 </div>
@@ -403,47 +423,47 @@
 
     <!-- 新增通道 Modal -->
     <div id="add-channel-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="glass-panel p-6 rounded-[2.5rem] w-full max-w-md shadow-2xl relative">
-            <button onclick="closeAddChannelModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 transition">✕</button>
+        <div class="glass-panel p-6 rounded-[2.5rem] w-full max-w-md shadow-2xl relative border-2 border-[#2F3E36]">
+            <button onclick="closeAddChannelModal()" class="absolute top-5 right-5 text-[#2F3E36] hover:text-[#2F3E36]/60 transition">✕</button>
             
             <div class="flex items-center gap-3 mb-4">
-                <div class="w-9 h-9 bg-[#2D251E] text-white rounded-xl flex items-center justify-center text-lg font-bold">
+                <div class="w-9 h-9 bg-[#2F3E36] text-white rounded-xl flex items-center justify-center text-lg font-bold">
                     🔌
                 </div>
                 <div>
-                    <h3 class="text-sm font-bold text-[#2D251E]">新增三方支付通道</h3>
+                    <h3 class="text-sm font-bold text-[#2F3E36]">新增三方支付通道</h3>
                     <p class="text-[11px] text-[#614D3F] opacity-75">在殘留大盤中追加支付通道，自動同步定位入內/外部對照表</p>
                 </div>
             </div>
 
             <form id="add-channel-form" onsubmit="handleChannelSubmit(event)" class="space-y-4 text-xs">
                 <div>
-                    <label class="block font-bold text-[#2D251E] mb-1">通道名稱</label>
-                    <input type="text" id="new-channel-name" placeholder="如: JJ支付寶(高額層)" class="w-full bg-white/60 focus:bg-white p-2.5 rounded-xl border border-white/60 outline-none" required>
+                    <label class="block font-bold text-[#2F3E36] mb-1">通道名稱</label>
+                    <input type="text" id="new-channel-name" placeholder="如: JJ支付寶(高額層)" class="w-full bg-white/60 focus:bg-white p-2.5 rounded-xl border border-[#2F3E36]/20 outline-none" required>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block font-bold text-[#2D251E] mb-1">通道類型分類</label>
-                        <select id="new-channel-type" class="w-full bg-white/60 focus:bg-white p-2.5 rounded-xl border border-white/60 outline-none font-semibold">
+                        <label class="block font-bold text-[#2F3E36] mb-1">通道類型分類</label>
+                        <select id="new-channel-type" class="w-full bg-white/60 focus:bg-white p-2.5 rounded-xl border border-[#2F3E36]/20 outline-none font-semibold">
                             <option value="internal">內部通道</option>
                             <option value="external">外部通道</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block font-bold text-[#2D251E] mb-1">通道手續費率 (%)</label>
-                        <input type="number" step="0.1" id="new-channel-fee" placeholder="3.0" value="3.0" class="w-full bg-white/60 focus:bg-white p-2.5 rounded-xl border border-white/60 outline-none" required>
+                        <label class="block font-bold text-[#2F3E36] mb-1">通道手續費率 (%)</label>
+                        <input type="number" step="0.1" id="new-channel-fee" placeholder="3.0" value="3.0" class="w-full bg-white/60 focus:bg-white p-2.5 rounded-xl border border-[#2F3E36]/20 outline-none" required>
                     </div>
                 </div>
                 <div>
-                    <label class="block font-bold text-[#2D251E] mb-1">初始殘留餘額 (元)</label>
-                    <input type="number" step="0.01" id="new-channel-balance" placeholder="0.00" value="0.00" class="w-full bg-white/60 focus:bg-white p-2.5 rounded-xl border border-white/60 outline-none" required>
+                    <label class="block font-bold text-[#2F3E36] mb-1">初始殘留餘額 (元)</label>
+                    <input type="number" step="0.01" id="new-channel-balance" placeholder="0.00" value="0.00" class="w-full bg-white/60 focus:bg-white p-2.5 rounded-xl border border-[#2F3E36]/20 outline-none" required>
                 </div>
 
                 <div class="flex gap-3 pt-2">
-                    <button type="button" onclick="closeAddChannelModal()" class="flex-1 bg-white/40 hover:bg-white/60 py-3 rounded-xl font-bold transition">
+                    <button type="button" onclick="closeAddChannelModal()" class="flex-1 bg-white/40 hover:bg-white/60 py-3 rounded-xl font-bold transition border border-[#2F3E36]/20">
                         取消
                     </button>
-                    <button type="submit" class="flex-1 bg-[#2D251E] hover:bg-[#43372c] text-white py-3 rounded-xl font-bold transition shadow-md">
+                    <button type="submit" class="flex-1 bg-[#2F3E36] hover:bg-[#6B9080] text-white py-3 rounded-xl font-bold transition shadow-md border border-[#2F3E36]">
                         確認並加入雲端對照表
                     </button>
                 </div>
@@ -452,10 +472,7 @@
     </div>
 
     <!-- 即時提示框 -->
-    <div id="toast" class="fixed bottom-6 right-6 bg-[#2D251E] text-white text-xs font-bold py-3 px-5 rounded-2xl shadow-xl transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-2">
-        <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path>
-        </svg>
+    <div id="toast" class="fixed bottom-6 right-6 bg-[#2F3E36] text-white text-xs font-bold py-3 px-5 rounded-2xl shadow-xl transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-2 border border-[#6B9080]/30">
         <span id="toast-msg">操作成功</span>
     </div>
 
@@ -465,7 +482,6 @@
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, addDoc, updateDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // 綁定全域交互函數至 window
         window.switchMainTab = switchMainTab;
         window.loadDetailSheet = loadDetailSheet;
         window.openAddDetailModal = openAddDetailModal;
@@ -486,6 +502,11 @@
         window.triggerEditChannel = triggerEditChannel;
         window.closeEditChannelModal = closeEditChannelModal;
         window.executeEditChannelName = executeEditChannelName;
+
+        window.handleDragStart = handleDragStart;
+        window.handleDragOver = handleDragOver;
+        window.handleDrop = handleDrop;
+        window.handleDragEnd = handleDragEnd;
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'four-pay-residual-audit-pro';
         
@@ -510,11 +531,11 @@
         let user = null;
         let channelsList = [];
         let recordsList = [];
-        let orderCache = { internal: [], external: [] }; // 用來儲存通道排序快照
 
-        let filterZero = true;
+        let filterZero = false; 
         let searchQuery = "";
         let currentSelectedChannelId = ""; 
+        let draggedId = null;
 
         const initAuth = async () => {
             try {
@@ -535,13 +556,13 @@
             user = userData;
             if (user) {
                 document.getElementById('cloud-status-text').innerText = "已連線雲端同步";
-                document.getElementById('cloud-status-dot').className = "relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500";
-                document.getElementById('cloud-status-ping').className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
+                document.getElementById('cloud-status-dot').className = "relative inline-flex rounded-full h-2 w-2 bg-[#6B9080]";
+                document.getElementById('cloud-status-ping').className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-[#6B9080] opacity-75";
                 
                 setupFirestoreListeners();
             } else {
                 document.getElementById('cloud-status-text').innerText = "未取得雲端驗證";
-                document.getElementById('cloud-status-dot').className = "relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500";
+                document.getElementById('cloud-status-dot').className = "relative inline-flex rounded-full h-2 w-2 bg-red-400";
                 document.getElementById('cloud-status-ping').className = "hidden";
             }
         });
@@ -565,12 +586,10 @@
                     return;
                 }
 
-                // 優先使用本地快照排序，若快照不存在則依預設名稱拼音字母排序
-                loadLocalOrderCache();
-                sortChannelsWithCache();
+                sortChannelsStatically();
 
                 if (!currentSelectedChannelId && channelsList.length > 0) {
-                    const defaultCh = channelsList.find(c => c.name === "JJ支付寶" && c.type === "internal") || channelsList[0];
+                    const defaultCh = channelsList.find(c => normalizeName(c.name) === "JJ支付寶" && c.type === "internal") || channelsList[0];
                     currentSelectedChannelId = defaultCh.id;
                 }
 
@@ -591,49 +610,50 @@
             });
         }
 
-        // 讀取本地儲存的卡片排序
-        function loadLocalOrderCache() {
-            try {
-                const cacheStr = localStorage.getItem('four_pay_channels_order');
-                if (cacheStr) {
-                    orderCache = JSON.parse(cacheStr);
-                }
-            } catch (e) {
-                console.warn("無法載入本地排序快照", e);
-            }
+        function normalizeName(str) {
+            if (!str) return "";
+            return str.replace(/\s+/g, '').replace(/（/g, '(').replace(/）/g, ')');
         }
 
-        // 儲存當前排序順序至本地
-        function saveLocalOrderCache() {
-            try {
-                const internalIds = Array.from(document.querySelectorAll('#internal-list > [data-id]')).map(el => el.getAttribute('data-id'));
-                const externalIds = Array.from(document.querySelectorAll('#external-list > [data-id]')).map(el => el.getAttribute('data-id'));
-                orderCache = { internal: internalIds, external: externalIds };
-                localStorage.setItem('four_pay_channels_order', JSON.stringify(orderCache));
-            } catch (e) {
-                console.warn("無法儲存排序快照", e);
-            }
-        }
+        function sortChannelsStatically() {
+            const internalOrder = [
+                "JJ卡轉卡", "JJ支付寶", "JJ微信", "JJ數位人民幣",
+                "和奕代收", "和奕支付寶", "新寶支付寶", "新寶支付寶(小額)",
+                "VCOTC支付寶", "XQ小額卡卡", "紅喜鵲支轉支", "紅喜鵲卡轉卡",
+                "全通支付寶", "碼上支付寶(新人層)", "碼上純代收", "碼上小額卡卡",
+                "GOSM支付寶", "GOSM微信", "ZCPAY支付寶", "樂支付寶"
+            ].map(normalizeName);
 
-        // 使用本地緩存和字母順序混合排序
-        function sortChannelsWithCache() {
-            const internalSorted = channelsList.filter(c => c.type === 'internal');
-            const externalSorted = channelsList.filter(c => c.type === 'external');
+            const externalOrder = [
+                "JJ卡轉卡", "JJ支付寶", "WF支付寶", "和奕代收",
+                "新寶支付寶", "ZCPAY支付寶", "全通支付寶"
+            ].map(normalizeName);
 
-            const sortFunc = (list, cachedIds) => {
-                list.sort((a, b) => {
-                    const indexA = cachedIds ? cachedIds.indexOf(a.id) : -1;
-                    const indexB = cachedIds ? cachedIds.indexOf(b.id) : -1;
-                    
-                    if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-                    if (indexA !== -1) return -1;
-                    if (indexB !== -1) return 1;
+            const internalSorted = channelsList
+                .filter(c => c.type === 'internal')
+                .sort((a, b) => {
+                    const normA = normalizeName(a.name);
+                    const normB = normalizeName(b.name);
+                    const idxA = internalOrder.indexOf(normA);
+                    const idxB = internalOrder.indexOf(normB);
+                    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                    if (idxA !== -1) return -1;
+                    if (idxB !== -1) return 1;
                     return a.name.localeCompare(b.name, 'zh-TW');
                 });
-            };
 
-            sortFunc(internalSorted, orderCache.internal);
-            sortFunc(externalSorted, orderCache.external);
+            const externalSorted = channelsList
+                .filter(c => c.type === 'external')
+                .sort((a, b) => {
+                    const normA = normalizeName(a.name);
+                    const normB = normalizeName(b.name);
+                    const idxA = externalOrder.indexOf(normA);
+                    const idxB = externalOrder.indexOf(normB);
+                    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                    if (idxA !== -1) return -1;
+                    if (idxB !== -1) return 1;
+                    return a.name.localeCompare(b.name, 'zh-TW');
+                });
 
             channelsList = [...internalSorted, ...externalSorted];
         }
@@ -643,34 +663,34 @@
             const batch = writeBatch(db);
 
             const defaultChannels = [
-              { name: "JJ卡轉卡", type: "internal", icon: "💳", fee: 3.0, initialBalance: 5000.00 },
-              { name: "JJ支付寶", type: "internal", icon: "📱", fee: 3.5, initialBalance: 10000.00 },
-              { name: "JJ微信", type: "internal", icon: "💬", fee: 5.8, initialBalance: 0.00 },
-              { name: "JJ數位人民幣", type: "internal", icon: "🧧", fee: 2.2, initialBalance: 0.00 },
-              { name: "VCOTC支付寶", type: "internal", icon: "🛡️", fee: 0.0, initialBalance: 0.00 },
-              { name: "XQ小額卡卡", type: "internal", icon: "⚡", fee: 4.5, initialBalance: 1500.00 },
-              { name: "紅喜鵲卡轉卡", type: "internal", icon: "🐦", fee: 3.8, initialBalance: 0.00 },
-              { name: "紅喜鵲支轉支", type: "internal", icon: "🔄", fee: 2.4, initialBalance: 0.00 },
-              { name: "ZCPAY支付寶", type: "internal", icon: "💰", fee: 3.2, initialBalance: 500.00 },
-              { name: "碼上支付寶（新人層）", type: "internal", icon: "🌟", fee: 3.0, initialBalance: 3000.00 },
-              { name: "碼上純代收", type: "internal", icon: "📥", fee: 3.0, initialBalance: 0.00 },
-              { name: "碼上小額卡卡", type: "internal", icon: "📲", fee: 3.8, initialBalance: 0.00 },
-              { name: "新寶支付寶", type: "internal", icon: "💎", fee: 3.2, initialBalance: 4500.00 },
-              { name: "新寶支付寶(小額)", type: "internal", icon: "🧬", fee: 3.2, initialBalance: 0.00 },
-              { name: "和奕", type: "internal", icon: "🤝", fee: 2.8, initialBalance: 2000.00 },
-              { name: "和奕支付寶", type: "internal", icon: "🛸", fee: 2.6, initialBalance: 1200.00 },
-              { name: "全通支付寶", type: "internal", icon: "🌐", fee: 3.3, initialBalance: 2500.00 },
-              { name: "GOSM支付寶", type: "internal", icon: "🎯", fee: 3.2, initialBalance: 1000.00 },
-              { name: "GOSM微信", type: "internal", icon: "📡", fee: 4.3, initialBalance: 0.00 },
-              { name: "樂支付寶", type: "internal", icon: "🎵", fee: 3.5, initialBalance: 0.00 },
+              { name: "JJ卡轉卡", type: "internal", icon: "💳", fee: "3.00%", initialBalance: 2406.00 },
+              { name: "JJ支付寶", type: "internal", icon: "📱", fee: "3.50%", initialBalance: 1422.00 },
+              { name: "JJ微信", type: "internal", icon: "💬", fee: "5.80%", initialBalance: 399.00 },
+              { name: "JJ數位人民幣", type: "internal", icon: "🧧", fee: "2.20%", initialBalance: 0.00 },
+              { name: "和奕代收", type: "internal", icon: "🤝", fee: "2.80%", initialBalance: 0.00 },
+              { name: "和奕支付寶", type: "internal", icon: "🛸", fee: "2.60%", initialBalance: 6007.00 },
+              { name: "新寶支付寶", type: "internal", icon: "💎", fee: "3.20%", initialBalance: 1503.00 },
+              { name: "新寶支付寶(小額)", type: "internal", icon: "🧬", fee: "3.20%", initialBalance: 0.00 },
+              { name: "VCOTC支付寶", type: "internal", icon: "🛡️", fee: "0.00%", initialBalance: 1100.00 },
+              { name: "XQ小額卡卡", type: "internal", icon: "⚡", fee: "4.50%", initialBalance: 1000.00 },
+              { name: "紅喜鵲支轉支", type: "internal", icon: "🔄", fee: "2.40%", initialBalance: 0.00 },
+              { name: "紅喜鵲卡轉卡", type: "internal", icon: "🐦", fee: "3.80%", initialBalance: 0.00 },
+              { name: "全通支付寶", type: "internal", icon: "🌐", fee: "3.30%", initialBalance: 3060.00 },
+              { name: "碼上支付寶(新人層)", type: "internal", icon: "🌟", fee: "3.00%", initialBalance: 0.00 },
+              { name: "碼上純代收", type: "internal", icon: "📥", fee: "3.00%", initialBalance: 0.00 },
+              { name: "碼上小額卡卡", type: "internal", icon: "📲", fee: "3.80%", initialBalance: 0.00 },
+              { name: "GOSM支付寶", type: "internal", icon: "🎯", fee: "3.20%", initialBalance: 0.00 },
+              { name: "GOSM微信", type: "internal", icon: "📡", fee: "4.30%", initialBalance: 0.00 },
+              { name: "ZCPAY支付寶", type: "internal", icon: "💰", fee: "3.20%", initialBalance: 0.00 },
+              { name: "樂支付寶", type: "internal", icon: "🎵", fee: "3.50%", initialBalance: 1385.00 },
 
-              { name: "JJ卡轉卡", type: "external", icon: "💳", fee: 2.8, initialBalance: 15000.00 },
-              { name: "JJ支付寶", type: "external", icon: "📱", fee: 3.3, initialBalance: 6000.00 },
-              { name: "WF支付寶", type: "external", icon: "📉", fee: 3.5, initialBalance: 0.00 },
-              { name: "ZCPAY支付寶", type: "external", icon: "💰", fee: 3.5, initialBalance: 0.00 },
-              { name: "新寶支付寶", type: "external", icon: "💎", fee: 2.8, initialBalance: 0.00 },
-              { name: "和奕", type: "external", icon: "🤝", fee: 2.0, initialBalance: 0.00 },
-              { name: "全通支付寶", type: "external", icon: "🌐", fee: 3.3, initialBalance: 8000.00 }
+              { name: "JJ卡轉卡", type: "external", icon: "💳", fee: "2.80%", initialBalance: 0.00 },
+              { name: "JJ支付寶", type: "external", icon: "📱", fee: "3.30%", initialBalance: 600.00 },
+              { name: "WF支付寶", type: "external", icon: "📉", fee: "3.50%", initialBalance: 0.00 },
+              { name: "和奕代收", type: "external", icon: "🤝", fee: "2.00%", initialBalance: 0.00 },
+              { name: "新寶支付寶", type: "external", icon: "💎", fee: "2.80%", initialBalance: 0.00 },
+              { name: "ZCPAY支付寶", type: "external", icon: "💰", fee: "3.50%", initialBalance: 0.00 },
+              { name: "全通支付寶", type: "external", icon: "🌐", fee: "3.30%", initialBalance: 12450.00 }
             ];
 
             const channelRefs = {};
@@ -682,131 +702,22 @@
                 channelRefs[lookupKey] = docRef.id;
             });
 
-            const defaultRecords = {
-                "JJ支付寶": [
-                  { date: "2025-04-20", merchant: "KRE_4897710", orderNo: "R0013357240", fee: 12.50, remark: "單筆未入", amount: 362 },
-                  { date: "2025-04-25", merchant: "YS168NB", orderNo: "01968182BA715BF35D0C", fee: 14.00, remark: "用戶已扣待核算", amount: 400 },
-                  { date: "2025-04-29", merchant: "XO168B", orderNo: "01968182BA715BF35D0C19E7982D1000", fee: 4.10, remark: "常規調帳", amount: 123 },
-                  { date: "2025-05-01", merchant: "ND168NB", orderNo: "KRI_1485891", fee: 10.50, remark: "三方通道阻斷", amount: 300 },
-                  { date: "2025-05-08", merchant: "ND", orderNo: "KRI_1526013", fee: 3.20, remark: "舊流水殘留", amount: 100 },
-                  { date: "2025-05-18", merchant: "ND168NB", orderNo: "KRI_1602114", fee: 7.90, remark: "流水延時補單", amount: 230 },
-                  { date: "2025-05-21", merchant: "YS168NB", orderNo: "KRF_2204481", fee: 3.30, remark: "常規調撥核對", amount: 100 },
-                  { date: "2025-07-25", merchant: "ND168B", orderNo: "KRI_2102749", fee: 3.50, remark: "延誤上分", amount: 110 },
-                  { date: "2025-08-01", merchant: "MT168B", orderNo: "KRE_5139876", fee: 7.10, remark: "超時失敗", amount: 211 },
-                  { date: "2025-08-20", merchant: "HS168NB", orderNo: "KRJ_548254", fee: 13.20, remark: "逾時失敗殘留", amount: 389 }
-                ],
-                "JJ卡轉卡": [
-                  { date: "2024-08-27", merchant: "OL", orderNo: "L20240827092432136", fee: 3.80, remark: "代收補足", amount: 111 },
-                  { date: "2024-09-03", merchant: "MT", stroke: "currentColor", fee: 3.60, remark: "系統重試回調失效", amount: 110 },
-                  { date: "2024-12-15", merchant: "SH", orderNo: "KRD_4280472", fee: 35.00, remark: "大額卡卡殘留", amount: 1000 },
-                  { date: "2024-12-19", merchant: "OL1688", orderNo: "L20241219163256695", fee: 6.20, remark: "小額入帳待查", amount: 185 },
-                  { date: "2025-02-21", merchant: "YS1688", orderNo: "KRF_2061014", fee: 33.00, remark: "手續費追收", amount: 1000 }
-                ],
-                "和奕": [
-                  { date: "2025-01-26", merchant: "和奕先前金額", orderNo: "HISTORICAL_4513", fee: 135.39, remark: "先前遺留總殘留額度", amount: 4513 }
-                ],
-                "和奕(外部)": [
-                  { date: "2024-04-03", merchant: "和奕商戶", orderNo: "OTC088624040317840", fee: 157.50, remark: "新舊匯率對帳差", amount: 4500 },
-                  { date: "2024-04-24", merchant: "和奕商戶", orderNo: "OTC097324042328576", fee: 115.50, remark: "差額累計", amount: 3300 }
-                ],
-                "XQ小額卡卡": [
-                  { date: "2025-12-10", merchant: "XY168G", orderNo: "L20251210074456955", fee: 30.60, remark: "商戶手續費 0.045", amount: 680 },
-                  { date: "2026-01-10", merchant: "ND168G", orderNo: "KRI_3379481", fee: 41.69, remark: "商戶手續費 0.047", amount: 887 },
-                  { date: "2026-01-24", merchant: "XY168G", orderNo: "L20260124081029814", fee: 31.55, remark: "商戶手續費 0.045", amount: 701 },
-                  { date: "2026-03-30", merchant: "N/A", orderNo: "KRK_559550", fee: 39.00, remark: "商戶手續費 0.039", amount: 1000 }
-                ],
-                "紅喜鵲卡轉卡": [
-                  { date: "2026-05-25", merchant: "N/A", orderNo: "L20260525081517901", fee: 44.43, remark: "喜鵲渠道餘額", amount: 1424.72 }
-                ],
-                "碼上支付寶（新人層）": [
-                  { date: "2025-06-21", merchant: "HS168NB", orderNo: "KRJ_280156", fee: 60.00, remark: "大額代收殘留", amount: 2000 },
-                  { date: "2025-08-20", merchant: "HS168NB", orderNo: "KRJ_548593", fee: 18.69, remark: "逾時失敗", amount: 623 },
-                  { date: "2025-09-01", merchant: "HS168NB", orderNo: "KRJ_601871", fee: 15.00, remark: "待回調出款", amount: 500 },
-                  { date: "2025-11-24", merchant: "YD168NB", orderNo: "KRK_112628", fee: 15.00, remark: "風控未釋放", amount: 500 },
-                  { date: "2025-12-27", merchant: "ND168NB", orderNo: "KRI_3286437", fee: 90.00, remark: "新人層殘留", amount: 3000 },
-                  { date: "2026-01-29", merchant: "ND168NB", orderNo: "KRI_3491322", fee: 15.00, remark: "常規補單殘留", amount: 500 }
-                ],
-                "和奕支付寶": [
-                  { date: "2025-12-28", merchant: "HS168B", orderNo: "KRJ_1148483", fee: 13.00, remark: "常規殘留", amount: 500 },
-                  { date: "2026-03-24", merchant: "XY168B", orderNo: "L20260324221132135", fee: 143.18, remark: "逾時失敗殘留", amount: 5350.81 }
-                ],
-                "全通支付寶": [
-                  { date: "2024-11-19", merchant: "SH1688A", orderNo: "KRD_4226575", fee: 33.82, remark: "常規殘留", amount: 1025 },
-                  { date: "2025-07-07", merchant: "SH168B", orderNo: "KRD_4642458", fee: 67.15, remark: "逾時上單殘留", amount: 1934.02 }
-                ],
-                "全通支付寶(外部)": [
-                  { date: "2024-10-13", merchant: "N/A", orderNo: "L20241013181209378", fee: 95.70, remark: "常規對沖", amount: 2900 },
-                  { date: "2025-06-26", merchant: "N/A", orderNo: "250626110749R004P", fee: 315.15, remark: "通道殘留", amount: 9139.15 }
-                ],
-                "新寶支付寶": [
-                  { date: "2024-12-23", merchant: "SH", orderNo: "KRD_4291485", fee: 32.00, remark: "費率 3.2 殘留", amount: 1000 },
-                  { date: "2025-09-24", merchant: "JD", orderNo: "KRG_1666656", fee: 28.00, remark: "費率 2.8 殘留", amount: 1000 },
-                  { date: "2026-05-23", merchant: "ND168NB", orderNo: "KRI_4005163", fee: 15.00, remark: "逾時失敗", amount: 500 },
-                  { date: "2026-05-27", merchant: "LS168NB", orderNo: "L20260527000640156", fee: 30.09, remark: "逾時失敗", amount: 903.92 }
-                ],
-                "GOSM支付寶": [
-                  { date: "N/A", merchant: "mt", orderNo: "KRE_4887677", fee: 33.92, remark: "常規對帳殘留", amount: 1028 },
-                  { date: "2024-11-14", merchant: "SH", stroke: "currentColor", stroke_width: "2.5", orderNo: "KRD_4216042", fee: 48.90, remark: "新費率 3.2 殘留額", amount: 1528 },
-                  { date: "2024-08-11", merchant: "OL", orderNo: "L20240811122841093", fee: 31.16, remark: "舊費率 3.8 殘留額", amount: 820 },
-                  { date: "2024-08-22", merchant: "LS", orderNo: "L20240822153733098", fee: 18.58, remark: "撤銷投訴補單", amount: 531 },
-                  { date: "2024-08-26", merchant: "OL", orderNo: "L20240826164241554", fee: 0.08, remark: "補差額2", amount: 2.86 },
-                  { date: "2024-09-05", merchant: "ND", orderNo: "KRI_41018", fee: 17.53, remark: "用戶取消", amount: 501 }
-                ],
-                "JJ支付寶(外部)": [
-                  { date: "2025-01-20", merchant: "N/A", orderNo: "250120193525R004P03ca", fee: 29.40, remark: "用戶: 盧勇", amount: 891 },
-                  { date: "2025-01-20", merchant: "N/A", orderNo: "250120192459R004P0ed3", fee: 33.06, remark: "用戶: 盧勇", amount: 1002 },
-                  { date: "2025-01-21", merchant: "N/A", orderNo: "OTC045925012157044", fee: 33.03, remark: "常規殘留", amount: 1001 },
-                  { date: "2025-01-30", merchant: "N/A", orderNo: "250130172043R004P0b6a", fee: 33.29, remark: "常規殘留", amount: 1009 },
-                  { date: "2025-01-31", merchant: "N/A", orderNo: "250131131806R004P05ea", fee: 33.26, remark: "代收異常", amount: 1008 },
-                  { date: "2025-01-31", merchant: "N/A", orderNo: "250131124119R004P02ad", fee: 33.26, remark: "代收異常", amount: 1008 },
-                  { date: "2025-02-09", merchant: "N/A", orderNo: "250209234610R004P0808", fee: 16.66, remark: "常規對沖", amount: 505 }
-                ],
-                "JJ卡轉卡(外部)": [
-                  { date: "2024-08-08", merchant: "N/A", orderNo: "240808230640R0019P0785", fee: 8.96, remark: "常規對帳殘留", amount: 320 },
-                  { date: "2024-08-17", merchant: "N/A", orderNo: "OTC041324081708251", stroke: "currentColor", stroke_width: "2.5", fee: 56.08, remark: "大額對沖", amount: 2003 },
-                  { date: "2024-08-21", merchant: "N/A", orderNo: "240821183052R0019P0a4c", fee: 5.60, remark: "小額入帳待查", amount: 200 },
-                  { date: "2024-08-31", merchant: "N/A", orderNo: "1296632", fee: 28.00, remark: "用戶取消交易", amount: 1000 },
-                  { date: "2024-09-19", merchant: "N/A", orderNo: "019224091959596", fee: 56.08, remark: "常規對沖", amount: 2003 },
-                  { date: "2024-10-01", merchant: "N/A", orderNo: "241001143312R0019P0bc4", fee: 8.40, remark: "小額掛單", amount: 300 },
-                  { date: "2024-10-02", merchant: "N/A", orderNo: "OTC067224100217640", fee: 56.00, remark: "代收清算殘留", amount: 2000 }
-                ],
-                "ZCPAY支付寶": [
-                  { date: "2024-10-18", merchant: "KF", orderNo: "L20241018021103883", fee: 15.00, remark: "小額入帳異常", amount: 500 },
-                  { date: "2024-11-07", merchant: "YS1688A", orderNo: "KRF_1854777", fee: 20.31, remark: "延遲補單", amount: 677 },
-                  { date: "2024-12-03", merchant: "ND", orderNo: "KRI_525287", fee: 15.30, remark: "已扣款未上分", amount: 510 },
-                  { date: "2024-12-11", merchant: "ND1688A", orderNo: "KRI_568204", fee: 15.00, remark: "代收對沖", amount: 500 }
-                ]
-            };
-
-            Object.keys(defaultRecords).forEach(channelKey => {
-                const channelDocId = channelRefs[channelKey];
-                if (channelDocId) {
-                    defaultRecords[channelKey].forEach(rec => {
-                        const recDocRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'records'));
-                        batch.set(recDocRef, { ...rec, channelId: channelDocId });
-                    });
-                }
-            });
-
             await batch.commit();
             showToast("雲端安全初始化帳目已成功加載！");
         }
 
-        // 金額標準格式化 (保留小數點二位)
         function formatMoney(num) {
             return "¥ " + Number(num).toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        }
-
-        // 最終殘留總額專屬高精度三位小數格式化
-        function formatMoney3(num) {
-            return "¥ " + Number(num).toLocaleString('zh-TW', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
         }
 
         function recalculateAndRender() {
             channelsList.forEach(ch => {
                 const associatedRecords = recordsList.filter(r => r.channelId === ch.id);
+                const initialBal = Number(ch.initialBalance || 0);
                 const sumAmount = associatedRecords.reduce((s, r) => s + Number(r.amount || 0), 0);
-                ch.amount = Number(sumAmount.toFixed(2));
+                const sumFee = associatedRecords.reduce((s, r) => s + Number(r.fee || 0), 0);
+
+                ch.amount = Number((initialBal + sumAmount - sumFee).toFixed(2));
             });
 
             const internalContainer = document.getElementById('internal-list');
@@ -835,12 +746,45 @@
             document.getElementById('internal-count').innerText = `共 ${visibleInternalCount} 個非零通道`;
             document.getElementById('external-count').innerText = `共 ${visibleExternalCount} 個非零通道`;
 
-            // 初始化拖曳行為
-            setupDragAndDrop();
-
             if (currentSelectedChannelId) {
                 loadDetailSheet(currentSelectedChannelId);
             }
+        }
+
+        function handleDragStart(e, id) {
+            draggedId = id;
+            e.dataTransfer.effectAllowed = "move";
+            e.currentTarget.classList.add('opacity-40');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "move";
+        }
+
+        function handleDrop(e, targetId) {
+            e.preventDefault();
+            if (draggedId === targetId) return;
+
+            const draggedIdx = channelsList.findIndex(c => c.id === draggedId);
+            const targetIdx = channelsList.findIndex(c => c.id === targetId);
+
+            if (draggedIdx !== -1 && targetIdx !== -1) {
+                const draggedCh = channelsList[draggedIdx];
+                const targetCh = channelsList[targetIdx];
+                
+                if (draggedCh.type === targetCh.type) {
+                    channelsList.splice(draggedIdx, 1);
+                    channelsList.splice(targetIdx, 0, draggedCh);
+                    recalculateAndRender();
+                    showToast("自定義通道順序已重繪！");
+                }
+            }
+        }
+
+        function handleDragEnd(e) {
+            e.currentTarget.classList.remove('opacity-40');
+            draggedId = null;
         }
 
         function createChannelCard(item) {
@@ -848,176 +792,83 @@
             card.setAttribute('data-id', item.id);
             card.setAttribute('draggable', 'true');
             
-            let isSelected = (currentSelectedChannelId === item.id);
-            let activeBorder = isSelected ? "ring-2 ring-[#2D251E] bg-white/95 shadow-md" : "bg-white/55";
+            card.addEventListener('dragstart', (e) => handleDragStart(e, item.id));
+            card.addEventListener('dragover', handleDragOver);
+            card.addEventListener('drop', (e) => handleDrop(e, item.id));
+            card.addEventListener('dragend', handleDragEnd);
 
-            card.className = `glass-card p-4 rounded-2xl flex items-center justify-between cursor-pointer transition-all relative group select-none ${activeBorder}`;
+            const isSelected = (currentSelectedChannelId === item.id);
+            const isCardActive = item.amount > 0;
             
-            const hasDetail = recordsList.some(r => r.channelId === item.id);
-            const hasDetailClass = hasDetail ? "border-l-4 border-[#2D251E]" : "";
-            if (hasDetailClass) card.className += " " + hasDetailClass;
+            let cardStyleClass = isCardActive ? "glass-card-active" : "glass-card-inactive";
+
+            if (isSelected) {
+                cardStyleClass += " ring-4 ring-[#6B9080]/30";
+            }
+
+            card.className = `glass-card py-4 px-4 rounded-[1.25rem] flex items-center justify-between cursor-pointer relative group select-none ${cardStyleClass} min-h-[72px]`;
 
             card.onclick = (e) => {
-                // 如果點選到操作按鈕，則不觸發切換明細
                 if (e.target.closest('button')) {
                     return;
                 }
                 currentSelectedChannelId = item.id;
                 recalculateAndRender();
-                if (hasDetail) {
-                    switchMainTab('details');
-                    showToast(`已載入 ${item.name} 的交易對賬明細`);
-                } else {
-                    showToast(`「${item.name}」目前無單筆明細數據。`, "info");
-                }
+                switchMainTab('details');
+                showToast(`已載入 ${item.name} 的交易對賬明細`);
             };
 
-            // 圖示匹配與美化
             let matchedIcon = "🔌";
             const lowerName = item.name.toLowerCase();
             if (lowerName.includes("全通")) matchedIcon = "🌐";
-            else if (lowerName.includes("和奕支付寶")) matchedIcon = "🛸";
             else if (lowerName.includes("和奕")) matchedIcon = "🤝";
-            else if (lowerName.includes("紅喜鵲支轉支")) matchedIcon = "🔄";
-            else if (lowerName.includes("紅喜鵲卡轉卡")) matchedIcon = "🐦";
-            else if (lowerName.includes("新寶支付寶(小額)")) matchedIcon = "🧬";
-            else if (lowerName.includes("新寶支付寶")) matchedIcon = "💎";
-            else if (lowerName.includes("樂支付寶")) matchedIcon = "🎵";
-            else if (lowerName.includes("碼上小額卡卡")) matchedIcon = "📱";
-            else if (lowerName.includes("碼上支付寶")) matchedIcon = "🌟";
-            else if (lowerName.includes("碼上純代收")) matchedIcon = "📥";
-            else if (lowerName.includes("gosm支付寶")) matchedIcon = "🎯";
-            else if (lowerName.includes("gosm微信")) matchedIcon = "📡";
-            else if (lowerName.includes("jj支付寶")) matchedIcon = "📱";
-            else if (lowerName.includes("jj卡轉卡")) matchedIcon = "💳";
-            else if (lowerName.includes("jj微信")) matchedIcon = "💬";
-            else if (lowerName.includes("jj數位人民幣") || lowerName.includes("數位人民幣") || lowerName.includes("e-cny")) matchedIcon = "🧧";
-            else if (lowerName.includes("vcotc支付寶")) matchedIcon = "🛡️";
-            else if (lowerName.includes("xq小額卡卡")) matchedIcon = "⚡";
-            else if (lowerName.includes("zcpay支付寶")) matchedIcon = "💰";
+            else if (lowerName.includes("紅喜鵲支")) matchedIcon = "🔄";
+            else if (lowerName.includes("紅喜鵲卡")) matchedIcon = "🐦";
+            else if (lowerName.includes("新寶")) matchedIcon = "💎";
+            else if (lowerName.includes("樂支")) matchedIcon = "🎵";
+            else if (lowerName.includes("碼上")) matchedIcon = "🌟";
+            else if (lowerName.includes("gosm")) matchedIcon = "🎯";
+            else if (lowerName.includes("微信")) matchedIcon = "💬";
+            else if (lowerName.includes("支付寶")) matchedIcon = "📱";
+            else if (lowerName.includes("卡轉卡") || lowerName.includes("卡卡")) matchedIcon = "💳";
+            else if (lowerName.includes("人民幣")) matchedIcon = "🧧";
+            else if (lowerName.includes("vcotc")) matchedIcon = "🛡️";
+            else if (lowerName.includes("xq")) matchedIcon = "⚡";
+            else if (lowerName.includes("zcpay") || lowerName.includes("金")) matchedIcon = "💰";
 
-            // 將原本 p 標籤的 truncate 改成 whitespace-normal break-words 配合 leading-tight，實作完美排版換行
             card.innerHTML = `
-                <!-- 左側主體 -->
-                <div class="flex items-center gap-3 py-1.5 flex-1 min-w-0 pointer-events-none">
-                  <span class="w-9 h-9 rounded-xl bg-white/45 flex items-center justify-center shrink-0 shadow-sm text-lg">${matchedIcon}</span>
-                  <div class="flex-1 min-w-0">
-                    <p class="font-extrabold text-sm text-[#2D251E] whitespace-normal break-words leading-tight" title="${item.name}">${item.name}</p>
+                <!-- 左側：圖標與名稱 (盡量單行，太長折行) -->
+                <div class="flex items-center gap-2.5 flex-1 min-w-0 pointer-events-none">
+                  <span class="w-10 h-10 rounded-xl bg-white/70 flex items-center justify-center shrink-0 shadow-sm text-lg">${matchedIcon}</span>
+                  <div class="flex-1 min-w-0 pr-1">
+                    <p class="font-extrabold text-xs sm:text-sm text-[#2F3E36] break-words line-clamp-2 leading-tight" title="${item.name}">${item.name}</p>
                   </div>
                 </div>
                 
-                <!-- 右側金額與操作功能 -->
-                <div class="flex items-center gap-3 shrink-0">
-                  <p class="font-bold text-sm text-[#2D251E] whitespace-nowrap font-mono tabular-nums text-right">${formatMoney(item.amount)}</p>
-                  
-                  <div class="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <!-- 右側：金額（Hover時向左漸隱平移） -->
+                <div class="flex items-center shrink-0 pointer-events-none transition-all duration-300 group-hover:opacity-10 group-hover:-translate-x-4">
+                  <p class="font-bold text-xs sm:text-sm text-[#2F3E36] font-mono tabular-nums text-right">${formatMoney(item.amount)}</p>
+                </div>
+
+                <!-- 絕對定位操作浮現按鈕 -->
+                <div class="absolute right-3 top-1/2 -translate-y-1/2 flex flex-row gap-1 justify-center opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-300">
                     <button onclick="triggerEditChannel(event, '${item.id}', '${item.name}')" 
-                            class="p-1 rounded bg-amber-50 text-amber-700 hover:bg-amber-100" 
-                            title="修改通道名稱">
-                      <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"></path></svg>
+                            class="p-1.5 rounded-lg text-[#2F3E36] hover:bg-white/60 bg-white shadow-sm border border-[#6B9080]/30 transition-all hover:scale-110" 
+                            title="修改名稱">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"></path>
+                      </svg>
                     </button>
                     <button onclick="triggerDeleteChannel(event, '${item.id}', '${item.name}')" 
-                            class="p-1 rounded bg-red-50 text-red-600 hover:bg-red-100" 
-                            title="刪除此通道">
-                      <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            class="p-1.5 rounded-lg text-red-600 hover:bg-red-100 bg-white shadow-sm border border-red-200/50 transition-all hover:scale-110" 
+                            title="刪除通道">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
                     </button>
-                  </div>
                 </div>
             `;
             return card;
-        }
-
-        // 設置 HTML5 拖拽與觸控支援（優化無手把、全卡片感應拖曳）
-        function setupDragAndDrop() {
-            const lists = [document.getElementById('internal-list'), document.getElementById('external-list')];
-            
-            lists.forEach(container => {
-                if (!container) return;
-
-                const cards = container.querySelectorAll('.glass-card');
-
-                cards.forEach(card => {
-                    // 電腦端 Drag Start - 允許直接在卡片空白處拖動
-                    card.addEventListener('dragstart', (e) => {
-                        // 如果點選到操作按鈕，阻止拖拽行為，以免干擾正常的按鈕點擊
-                        if (e.target.closest('button')) {
-                            e.preventDefault();
-                            return;
-                        }
-                        card.classList.add('dragging');
-                        e.dataTransfer.effectAllowed = 'move';
-                    });
-
-                    // 電腦端 Drag End
-                    card.addEventListener('dragend', () => {
-                        card.classList.remove('dragging');
-                        saveLocalOrderCache();
-                        showToast("通道自定義排序已保存在本地", "success");
-                    });
-
-                    // 手指觸控支持 (Mobile Touch Drag - 全卡拖曳優化版)
-                    let touchStartY = 0;
-                    let targetElement = null;
-
-                    card.addEventListener('touchstart', (e) => {
-                        // 排除按鈕以防干擾點擊
-                        if (!e.target.closest('button')) {
-                            targetElement = card;
-                            targetElement.classList.add('dragging');
-                            touchStartY = e.touches[0].clientY;
-                        }
-                    }, { passive: true });
-
-                    card.addEventListener('touchmove', (e) => {
-                        if (!targetElement) return;
-                        const touchY = e.touches[0].clientY;
-                        const draggingCard = targetElement;
-                        const siblings = [...container.querySelectorAll('.glass-card:not(.dragging)')];
-                        
-                        const nextSibling = siblings.find(sibling => {
-                            const box = sibling.getBoundingClientRect();
-                            return touchY < box.top + box.height / 2;
-                        });
-
-                        if (nextSibling) {
-                            container.insertBefore(draggingCard, nextSibling);
-                        } else {
-                            container.appendChild(draggingCard);
-                        }
-                    }, { passive: false });
-
-                    card.addEventListener('touchend', () => {
-                        if (targetElement) {
-                            targetElement.classList.remove('dragging');
-                            targetElement = null;
-                            saveLocalOrderCache();
-                            showToast("自定義通道順序已保存", "success");
-                        }
-                    });
-                });
-
-                // 容器 Drag Over 邏輯
-                container.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    const draggingCard = document.querySelector('.dragging');
-                    if (!draggingCard) return;
-
-                    // 確保只在同一個分類容器內拖曳
-                    if (draggingCard.parentNode !== container) return;
-
-                    const siblings = [...container.querySelectorAll('.glass-card:not(.dragging)')];
-                    const nextSibling = siblings.find(sibling => {
-                        const box = sibling.getBoundingClientRect();
-                        return e.clientY < box.top + box.height / 2;
-                    });
-
-                    if (nextSibling) {
-                        container.insertBefore(draggingCard, nextSibling);
-                    } else {
-                        container.appendChild(draggingCard);
-                    }
-                });
-            });
         }
 
         let pendingChannelIdToEdit = "";
@@ -1033,7 +884,6 @@
             pendingChannelIdToEdit = "";
         }
 
-        // 儲存修改後的通道名稱並寫入雲端數據庫
         async function executeEditChannelName() {
             const newName = document.getElementById('edit-channel-name-input').value.trim();
             if (!newName) {
@@ -1047,7 +897,7 @@
                 closeEditChannelModal();
             } catch (err) {
                 console.error("更新通道名稱失敗:", err);
-                showToast("雲端更新失敗，請檢查權限", "error");
+                showToast("雲端更新失敗", "error");
             }
         }
 
@@ -1082,11 +932,11 @@
                     currentSelectedChannelId = channelsList.length > 0 ? channelsList[0].id : "";
                 }
 
-                showToast("通道與其所有關連明細已成功從雲端清除");
+                showToast("通道與其相關明細已順利清除");
                 closeDeleteModal();
             } catch (err) {
                 console.error("刪除通道失敗:", err);
-                showToast("雲端刪除失敗，請檢查權限", "error");
+                showToast("雲端刪除失敗", "error");
             }
         }
 
@@ -1113,10 +963,12 @@
                 showToast("移除帳目失敗", "error");
             }
         }
-        
+
         function loadDetailSheet(channelId) {
             const currentChannel = channelsList.find(c => c.id === channelId);
             if (!currentChannel) return;
+
+            currentSelectedChannelId = channelId;
 
             const tbody = document.getElementById('detail-tbody');
             const title = document.getElementById('selected-detail-title');
@@ -1128,11 +980,9 @@
             title.innerText = `詳細殘留明細：${currentChannel.name} ${currentChannel.type === 'external' ? '(外部)' : ''}`;
             selector.value = channelId;
 
-            // 初始餘額數據載入
             const initialBal = Number(currentChannel.initialBalance || 0);
-            initialInput.value = initialBal.toFixed(3);
+            initialInput.value = initialBal.toFixed(2);
 
-            // 獲取所有關聯明細，並按日期進行倒序排列
             const associatedRecords = recordsList
                 .filter(r => r.channelId === channelId)
                 .sort((a, b) => {
@@ -1148,7 +998,7 @@
             const todayStr = new Date().toISOString().split('T')[0];
 
             if (associatedRecords.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-slate-500 italic">目前選定的通道尚無單筆殘留明細數據。您可以點擊右上角「新增明細」。</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-[#2F3E36] italic">目前選定的通道尚無單筆殘留明細數據。您可以點擊右上角「新增明細」。</td></tr>`;
             } else {
                 associatedRecords.forEach((row) => {
                     sum += Number(row.amount || 0);
@@ -1156,27 +1006,23 @@
 
                     const isToday = row.date === todayStr;
                     const tr = document.createElement('tr');
-                    tr.className = `transition-all ${isToday ? 'bg-amber-600/15 border-l-4 border-amber-700/80' : 'hover:bg-white/35 border-l-4 border-transparent'}`;
+                    tr.className = `transition-all ${isToday ? 'bg-[#6B9080]/15 border-l-4 border-[#6B9080]' : 'hover:bg-white/20 border-l-4 border-transparent'}`;
                     
                     tr.innerHTML = `
-                        <td class="p-4 font-bold text-[#2D251E]">
-                            <div class="flex items-center gap-1.5 font-mono text-sm">
+                        <td class="p-3.5 font-bold text-[#2F3E36]">
+                            <div class="flex items-center gap-1.5 font-mono">
                                 ${row.date}
-                                ${isToday ? '<span class="bg-amber-700 text-white text-[9px] px-1.5 py-0.5 rounded font-extrabold tracking-wider animate-pulse shrink-0">NEW</span>' : ''}
+                                ${isToday ? '<span class="bg-[#6B9080] text-white text-[9px] px-1.5 py-0.5 rounded font-extrabold animate-pulse">NEW</span>' : ''}
                             </div>
                         </td>
-                        <td class="p-4"><span class="bg-[#2D251E]/5 text-[#2D251E] px-2.5 py-1 rounded-lg font-bold">${row.merchant}</span></td>
-                        <td class="p-4 text-slate-600 font-mono select-all tracking-tight">${row.orderNo}</td>
-                        <!-- 手續費數值等寬字體，並根據要求顯示至小數點第三位 (.toFixed(3)) -->
-                        <td class="p-4 text-amber-900 font-bold font-mono text-sm tabular-nums">¥ ${Number(row.fee || 0).toFixed(3)}</td>
-                        <td class="p-4 text-slate-500 italic">${row.remark || '無'}</td>
-                        <!-- 金額數值等寬字體並顯著放大至 text-base -->
-                        <td class="p-4 text-right font-extrabold text-[#2D251E] text-base font-mono tabular-nums">¥ ${Number(row.amount || 0).toLocaleString('zh-TW', { minimumFractionDigits: 2 })}</td>
-                        <td class="p-4 text-center">
-                          <button onclick="triggerDeleteDetail('${row.id}')" class="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="刪除此筆流水">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                            </svg>
+                        <td class="p-3.5"><span class="bg-[#2F3E36]/5 text-[#2F3E36] px-2 py-1 rounded-lg font-bold">${row.merchant}</span></td>
+                        <td class="p-3.5 text-slate-700 font-mono tracking-tight select-all">${row.orderNo}</td>
+                        <td class="p-3.5 text-[#2F3E36] font-bold font-mono tabular-nums">¥ ${Number(row.fee || 0).toFixed(2)}</td>
+                        <td class="p-3.5 text-[#2F3E36]/70 italic">${row.remark || '無'}</td>
+                        <td class="p-3.5 text-right font-extrabold text-[#2F3E36] text-sm font-mono tabular-nums">¥ ${Number(row.amount || 0).toLocaleString('zh-TW', { minimumFractionDigits: 2 })}</td>
+                        <td class="p-3.5 text-center">
+                          <button onclick="triggerDeleteDetail('${row.id}')" class="p-1.5 rounded bg-red-50 text-red-600 hover:bg-red-100 transition-colors border border-red-200">
+                            ✕
                           </button>
                         </td>
                     `;
@@ -1184,7 +1030,6 @@
                 });
             }
 
-            // 通道手續費直接顯示原始費率並填入輸入框
             const rawFee = currentChannel.fee;
             let numericFee = 0.0;
             if (rawFee !== undefined && rawFee !== null) {
@@ -1192,9 +1037,8 @@
             }
             feeInput.value = numericFee.toFixed(2);
 
-            // 最終殘留總額 = 初始餘額 + 累計申請金額 - 累計手續費（高精度取至小數點第三位）
             const finalResidual = initialBal + sum - totalFee;
-            finalResidualDisplay.innerText = formatMoney3(finalResidual);
+            finalResidualDisplay.innerText = formatMoney(finalResidual);
         }
 
         async function syncInitialBalanceToCloud(value) {
@@ -1203,10 +1047,10 @@
             try {
                 const channelDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'channels', currentSelectedChannelId);
                 await updateDoc(channelDocRef, { initialBalance: targetBalance });
-                showToast("初始餘額已同步至雲端資料庫！");
+                showToast("初始餘額已實時同步雲端！");
             } catch (err) {
                 console.error("初始餘額同步失敗:", err);
-                showToast("雲端同步失敗，請檢查權限", "error");
+                showToast("同步失敗", "error");
             }
         }
 
@@ -1216,14 +1060,13 @@
             try {
                 const channelDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'channels', currentSelectedChannelId);
                 await updateDoc(channelDocRef, { fee: targetFee + "%" });
-                showToast("通道手續費率已同步至雲端資料庫！");
+                showToast("手續費率已同步雲端！");
             } catch (err) {
                 console.error("手續費率同步失敗:", err);
-                showToast("雲端同步失敗，請檢查權限", "error");
+                showToast("同步失敗", "error");
             }
         }
 
-        // 開啟新增明細彈窗，並自動根據當前通道預填費率
         function openAddDetailModal() {
             document.getElementById('new-detail-date').value = new Date().toISOString().split('T')[0];
             
@@ -1260,8 +1103,7 @@
                 return;
             }
 
-            // 手續費計算精確至小數點第三位
-            const calculatedFee = Number(((amount * feePercent) / 100).toFixed(3));
+            const calculatedFee = Number(((amount * feePercent) / 100).toFixed(2));
 
             try {
                 const recordsCol = collection(db, 'artifacts', appId, 'public', 'data', 'records');
@@ -1276,7 +1118,7 @@
                 });
 
                 closeAddDetailModal();
-                showToast(`流水帳目已成功寫入，自動換算手續費：¥ ${calculatedFee}`);
+                showToast(`流水已寫入，手續費：¥ ${calculatedFee}`);
             } catch (err) {
                 console.error("流水寫入失敗:", err);
                 showToast("雲端同步失敗", "error");
@@ -1291,9 +1133,9 @@
             const balance = parseFloat(document.getElementById('new-channel-balance').value) || 0;
             const fee = parseFloat(document.getElementById('new-channel-fee').value) || 3.0;
 
-            const isDuplicate = channelsList.some(item => item.name.toLowerCase() === name.toLowerCase() && item.type === type);
+            const isDuplicate = channelsList.some(item => normalizeName(item.name) === normalizeName(name) && item.type === type);
             if (isDuplicate) {
-                showToast("此通道名稱已存在，請勿重複添加！", "info");
+                showToast("此通道已存在，請勿重複添加！", "info");
                 return;
             }
 
@@ -1313,17 +1155,17 @@
                         date: new Date().toISOString().split('T')[0],
                         merchant: "INIT_MEMBER",
                         orderNo: "INIT_" + Math.random().toString(36).substr(2, 9).toUpperCase(),
-                        fee: Number((balance * (fee / 100)).toFixed(3)),
-                        remark: "手動創建通道初始餘額",
+                        fee: Number((balance * (fee / 100)).toFixed(2)),
+                        remark: "初始餘額補帳",
                         amount: balance
                     });
                 }
 
                 closeAddChannelModal();
-                showToast(`成功建立「${name}」通道！數據已推送至雲端`);
+                showToast(`成功建立「${name}」通道！`);
             } catch (err) {
                 console.error("通道新增失敗:", err);
-                showToast("儲存至雲端失敗", "error");
+                showToast("雲端同步失敗", "error");
             }
         }
 
@@ -1358,7 +1200,7 @@
 
             let markdownText = `| 交易日期 | 商戶ID | 訂單單號 | 手續費 (¥) | 備註說明 | 申請金額 |\n| --- | --- | --- | --- | --- | --- |\n`;
             associated.forEach(r => {
-                markdownText += `| ${r.date} | ${r.merchant} | ${r.orderNo} | ¥ ${Number(r.fee || 0).toFixed(3)} | ${r.remark} | ¥ ${r.amount} |\n`;
+                markdownText += `| ${r.date} | ${r.merchant} | ${r.orderNo} | ¥ ${Number(r.fee || 0).toFixed(2)} | ${r.remark} | ¥ ${r.amount} |\n`;
             });
 
             const el = document.createElement('textarea');
@@ -1381,18 +1223,19 @@
             const ball = document.getElementById('toggle-ball');
             if (filterZero) {
                 this.classList.remove('bg-slate-300');
-                this.classList.add('bg-[#2D251E]');
-                ball.classList.add('translate-x-4');
+                this.classList.add('bg-[#6B9080]');
+                ball.classList.remove('translate-x-0');
+                ball.classList.add('translate-x-3');
             } else {
-                this.classList.remove('bg-[#2D251E]');
+                this.classList.remove('bg-[#6B9080]');
                 this.classList.add('bg-slate-300');
-                ball.classList.remove('translate-x-4');
+                ball.classList.remove('translate-x-3');
+                ball.classList.add('translate-x-0');
             }
             recalculateAndRender();
         });
     </script>
 
-    <!-- UI 全域視窗輔助函數 -->
     <script>
         function switchMainTab(tabId) {
           const btnSummary = document.getElementById('tab-btn-summary');
@@ -1402,14 +1245,14 @@
           const formulaCard = document.getElementById('accounting-formula-card');
 
           if (tabId === 'summary') {
-            btnSummary.className = "whitespace-nowrap px-6 py-2.5 rounded-lg text-xs font-bold transition-all active-tab";
-            btnDetails.className = "whitespace-nowrap px-6 py-2.5 rounded-lg text-xs font-bold transition-all text-[#2D251E] hover:bg-white/40";
+            btnSummary.className = "whitespace-nowrap px-5 py-2 rounded-xl text-xs font-bold transition-all active-tab";
+            btnDetails.className = "whitespace-nowrap px-5 py-2 rounded-xl text-xs font-bold transition-all text-[#2F3E36] hover:bg-white/40";
             tabSummary.classList.remove('hidden');
             tabDetails.classList.add('hidden');
             formulaCard.classList.add('hidden');
           } else {
-            btnDetails.className = "whitespace-nowrap px-6 py-2.5 rounded-lg text-xs font-bold transition-all active-tab";
-            btnSummary.className = "whitespace-nowrap px-6 py-2.5 rounded-lg text-xs font-bold transition-all text-[#2D251E] hover:bg-white/40";
+            btnDetails.className = "whitespace-nowrap px-5 py-2 rounded-xl text-xs font-bold transition-all active-tab";
+            btnSummary.className = "whitespace-nowrap px-5 py-2 rounded-xl text-xs font-bold transition-all text-[#2F3E36] hover:bg-white/40";
             tabDetails.classList.remove('hidden');
             tabSummary.classList.add('hidden');
             formulaCard.classList.remove('hidden');
@@ -1426,7 +1269,6 @@
             document.getElementById('add-channel-modal').classList.add('hidden');
         }
 
-        // 輕量提示框
         function showToast(msg, type = "success") {
           const toast = document.getElementById('toast');
           const toastMsg = document.getElementById('toast-msg');
@@ -1443,3 +1285,5 @@
     </script>
 </body>
 </html>
+```
+eof
