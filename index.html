@@ -346,7 +346,7 @@
                         <span class="text-2xl font-extrabold font-mono text-[#3E2F28]">¥</span>
                         <input type="number" step="0.001" id="vcotc-rmb-input"
                             value="288718.796"
-                            onchange="totalRMB = parseFloat(this.value) || 0; vcotcSaveToStorage(); renderVCOTCData();"
+                            onchange="vcotcUpdateTotals(parseFloat(this.value) || 0, null);"
                             class="text-3xl font-extrabold font-mono text-[#3E2F28] bg-transparent border-b-2 border-transparent hover:border-[#A08070]/40 focus:border-[#A08070] outline-none w-full transition-colors"
                             style="min-width:0;">
                     </div>
@@ -359,7 +359,7 @@
                     <div class="flex items-baseline gap-1">
                         <input type="number" step="0.001" id="vcotc-usdt-input"
                             value="34277.906"
-                            onchange="totalUSDT = parseFloat(this.value) || 0; vcotcSaveToStorage(); renderVCOTCData();"
+                            onchange="vcotcUpdateTotals(null, parseFloat(this.value) || 0);"
                             class="text-3xl font-extrabold font-mono text-white bg-transparent border-b-2 border-transparent hover:border-white/30 focus:border-white/70 outline-none w-full transition-colors"
                             style="min-width:0;">
                     </div>
@@ -736,6 +736,12 @@
                 document.getElementById('cloud-status-ping').className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-[#A08070] opacity-75";
                 
                 setupFirestoreListeners();
+
+                // 將 Firestore 控制權暴露給普通 <script> 區塊內的 VCOTC 模組
+                window.fbDb = db;
+                window.fbAppId = appId;
+                window.fbFns = { collection, doc, setDoc, getDoc, onSnapshot, addDoc, deleteDoc, writeBatch };
+                if (typeof window.startVcotcCloud === 'function') window.startVcotcCloud();
             } else {
                 document.getElementById('cloud-status-text').innerText = "未取得雲端驗證";
                 document.getElementById('cloud-status-dot').className = "relative inline-flex rounded-full h-2 w-2 bg-red-400";
@@ -1535,7 +1541,7 @@
         }
 
         // ==========================================
-        // VCOTC 獨立四方餘額邏輯
+        // VCOTC 獨立四方餘額邏輯（Firestore 雲端實時同步版）
         // ==========================================
         const VCOTC_DEFAULT_DATA = [
             { date: "2024-12-01 02:50", channelNo: "OTC072624113067667", merchantNo: "KRF_1903310", rmb: "3000.000", uQty: "397.133", rate: "7.554", remark: "" },
@@ -1545,26 +1551,89 @@
             { date: "2024-12-01 09:10", channelNo: "OTC093924120100501", merchantNo: "KRH_794704", rmb: "2710.000", uQty: "359.328", rate: "7.542", remark: "" },
             { date: "2024-11-26 16:26", channelNo: "OTC070424112630407", merchantNo: "L20241126162645...", rmb: "1405.000", uQty: "184.986", rate: "7.595", remark: "" }
         ];
+        const VCOTC_DEFAULT_RMB  = 288718.796;
+        const VCOTC_DEFAULT_USDT = 34277.906;
 
-        // 從 localStorage 讀取已儲存資料，沒有則用預設值
-        function vcotcLoadFromStorage() {
-            try {
-                const saved = localStorage.getItem('vcotcData');
-                return saved ? JSON.parse(saved) : VCOTC_DEFAULT_DATA;
-            } catch(e) { return VCOTC_DEFAULT_DATA; }
+        // 本地狀態（由雲端 snapshot 即時驅動填充）
+        let vcotcData  = [];
+        let totalRMB   = VCOTC_DEFAULT_RMB;
+        let totalUSDT  = VCOTC_DEFAULT_USDT;
+
+        // ---- Firestore 路徑輔助 ----
+        function vcotcCloudReady() {
+            return !!(window.fbDb && window.fbAppId && window.fbFns);
         }
-        function vcotcSaveToStorage() {
-            try {
-                localStorage.setItem('vcotcData', JSON.stringify(vcotcData));
-                localStorage.setItem('vcotcTotalRMB',  String(totalRMB));
-                localStorage.setItem('vcotcTotalUSDT', String(totalUSDT));
-            } catch(e) {}
+        function vcotcCol() {
+            const { collection } = window.fbFns;
+            return collection(window.fbDb, 'artifacts', window.fbAppId, 'public', 'data', 'vcotc');
+        }
+        function vcotcMetaDoc() {
+            const { doc } = window.fbFns;
+            return doc(window.fbDb, 'artifacts', window.fbAppId, 'public', 'data', 'vcotc_meta', 'totals');
         }
 
-        let vcotcData  = vcotcLoadFromStorage();
-        let totalRMB   = parseFloat(localStorage.getItem('vcotcTotalRMB'))  || 288718.796;
-        let totalUSDT  = parseFloat(localStorage.getItem('vcotcTotalUSDT')) || 34277.906;
+        // ---- 雲端啟動：由 module script 在驗證成功後呼叫 ----
+        let vcotcListenersAttached = false;
+        let vcotcSeeded = false;
+        window.startVcotcCloud = function () {
+            if (vcotcListenersAttached || !vcotcCloudReady()) return;
+            vcotcListenersAttached = true;
+            const { onSnapshot } = window.fbFns;
 
+            // 明細集合即時監聽
+            onSnapshot(vcotcCol(), (snap) => {
+                vcotcData = [];
+                snap.forEach(d => vcotcData.push({ id: d.id, ...d.data() }));
+                if (snap.size === 0 && !vcotcSeeded) {
+                    vcotcSeeded = true;
+                    seedVcotcCloud();
+                    return;
+                }
+                renderVCOTCData();
+            }, (err) => console.error("VCOTC 明細監聽異常:", err));
+
+            // 總額文件即時監聽
+            onSnapshot(vcotcMetaDoc(), (docSnap) => {
+                if (docSnap.exists()) {
+                    const d = docSnap.data();
+                    if (typeof d.totalRMB  === 'number') totalRMB  = d.totalRMB;
+                    if (typeof d.totalUSDT === 'number') totalUSDT = d.totalUSDT;
+                } else {
+                    const { setDoc } = window.fbFns;
+                    setDoc(vcotcMetaDoc(), { totalRMB: VCOTC_DEFAULT_RMB, totalUSDT: VCOTC_DEFAULT_USDT }).catch(()=>{});
+                }
+                renderVCOTCData();
+            }, (err) => console.error("VCOTC 總額監聽異常:", err));
+        };
+
+        async function seedVcotcCloud() {
+            try {
+                const { writeBatch, doc } = window.fbFns;
+                const batch = writeBatch(window.fbDb);
+                const base = Date.now();
+                VCOTC_DEFAULT_DATA.forEach((row, i) => {
+                    batch.set(doc(vcotcCol()), { ...row, rowColor: 'none', createdAt: base + i });
+                });
+                await batch.commit();
+            } catch (err) {
+                console.error("VCOTC 初始化雲端資料失敗:", err);
+            }
+        }
+
+        // 更新總額並同步雲端（任一參數傳 null 表示不變）
+        window.vcotcUpdateTotals = async function (rmb, usdt) {
+            if (rmb  !== null && rmb  !== undefined) totalRMB  = rmb;
+            if (usdt !== null && usdt !== undefined) totalUSDT = usdt;
+            if (!vcotcCloudReady()) { renderVCOTCData(); return; }
+            try {
+                const { setDoc } = window.fbFns;
+                await setDoc(vcotcMetaDoc(), { totalRMB, totalUSDT });
+                showToast("總額已同步雲端！");
+            } catch (err) {
+                console.error("VCOTC 總額同步失敗:", err);
+                showToast("同步失敗", "error");
+            }
+        };
 
         function openVcotcAddModal() {
             document.getElementById('vcotc-add-modal').classList.remove('hidden');
@@ -1572,7 +1641,8 @@
         function closeVcotcAddModal() {
             document.getElementById('vcotc-add-modal').classList.add('hidden');
         }
-        function submitVcotcAdd() {
+
+        async function submitVcotcAdd() {
             const date      = document.getElementById('vcotc-new-date').value.trim();
             const channelNo = document.getElementById('vcotc-new-channelno').value.trim();
             const merchantNo= document.getElementById('vcotc-new-merchantno').value.trim();
@@ -1582,65 +1652,62 @@
             const remark    = document.getElementById('vcotc-new-remark').value.trim();
             const rowColor  = document.querySelector('input[name="vcotc-row-color"]:checked')?.value || 'none';
 
-            // 新增時自動累加總計
+            if (!vcotcCloudReady()) { showToast("雲端尚未連線，請稍候再試", "info"); return; }
+
             const rmbNum  = parseFloat(rmb)  || 0;
             const uQtyNum = parseFloat(uQty) || 0;
-            totalRMB  = Math.round((totalRMB  + rmbNum)  * 1000) / 1000;
-            totalUSDT = Math.round((totalUSDT + uQtyNum) * 1000) / 1000;
-            // 同步更新可編輯 input 顯示
-            const rmbInp  = document.getElementById('vcotc-rmb-input');
-            const usdtInp = document.getElementById('vcotc-usdt-input');
-            if (rmbInp)  rmbInp.value  = totalRMB;
-            if (usdtInp) usdtInp.value = totalUSDT;
+            const newRMB  = Math.round((totalRMB  + rmbNum)  * 1000) / 1000;
+            const newUSDT = Math.round((totalUSDT + uQtyNum) * 1000) / 1000;
 
-            vcotcData.unshift({ date, channelNo, merchantNo, rmb, uQty, rate, remark, rowColor, createdAt: Date.now() });
-            vcotcSaveToStorage();
-            renderVCOTCData();
-            closeVcotcAddModal();
-            // 清空欄位
-            ['vcotc-new-date','vcotc-new-channelno','vcotc-new-merchantno',
-             'vcotc-new-rmb','vcotc-new-uqty','vcotc-new-rate','vcotc-new-remark'].forEach(id => {
-                document.getElementById(id).value = '';
-            });
-            document.querySelector('input[name="vcotc-row-color"][value="none"]').checked = true;
-            showToast('VCOTC 明細已新增！');
-        }
-        function vcotcDeleteRow(createdAt, date, channelNo) {
-            const idx = vcotcData.findIndex(r =>
-                String(r.createdAt || '') === String(createdAt) &&
-                (r.date || '') === date &&
-                (r.channelNo || '') === channelNo
-            );
-            if (idx !== -1) {
-                const row = vcotcData[idx];
-                const rmbNum  = parseFloat(row.rmb)  || 0;
-                const uQtyNum = parseFloat(row.uQty) || 0;
-                totalRMB  = Math.round((totalRMB  - rmbNum)  * 1000) / 1000;
-                totalUSDT = Math.round((totalUSDT - uQtyNum) * 1000) / 1000;
-                // 同步更新可編輯 input
-                const rmbInp  = document.getElementById('vcotc-rmb-input');
-                const usdtInp = document.getElementById('vcotc-usdt-input');
-                if (rmbInp)  rmbInp.value  = totalRMB;
-                if (usdtInp) usdtInp.value = totalUSDT;
-                vcotcData.splice(idx, 1);
+            try {
+                const { addDoc, setDoc } = window.fbFns;
+                await addDoc(vcotcCol(), { date, channelNo, merchantNo, rmb, uQty, rate, remark, rowColor, createdAt: Date.now() });
+                await setDoc(vcotcMetaDoc(), { totalRMB: newRMB, totalUSDT: newUSDT });
+                closeVcotcAddModal();
+                ['vcotc-new-date','vcotc-new-channelno','vcotc-new-merchantno',
+                 'vcotc-new-rmb','vcotc-new-uqty','vcotc-new-rate','vcotc-new-remark'].forEach(id => {
+                    document.getElementById(id).value = '';
+                });
+                document.querySelector('input[name="vcotc-row-color"][value="none"]').checked = true;
+                showToast('VCOTC 明細已新增並同步雲端！');
+            } catch (err) {
+                console.error("VCOTC 明細新增失敗:", err);
+                showToast("雲端同步失敗", "error");
             }
-            vcotcSaveToStorage();
-            renderVCOTCData();
-            showToast('已刪除該筆明細');
+        }
+
+        async function vcotcDeleteRow(id) {
+            if (!vcotcCloudReady()) { showToast("雲端尚未連線", "info"); return; }
+            const row = vcotcData.find(r => r.id === id);
+            try {
+                const { deleteDoc, doc, setDoc } = window.fbFns;
+                await deleteDoc(doc(vcotcCol(), id));
+                if (row) {
+                    const rmbNum  = parseFloat(row.rmb)  || 0;
+                    const uQtyNum = parseFloat(row.uQty) || 0;
+                    const newRMB  = Math.round((totalRMB  - rmbNum)  * 1000) / 1000;
+                    const newUSDT = Math.round((totalUSDT - uQtyNum) * 1000) / 1000;
+                    await setDoc(vcotcMetaDoc(), { totalRMB: newRMB, totalUSDT: newUSDT });
+                }
+                showToast('已刪除該筆明細並同步雲端');
+            } catch (err) {
+                console.error("VCOTC 明細刪除失敗:", err);
+                showToast("移除失敗", "error");
+            }
         }
 
         function renderVCOTCData() {
-            // input value 由使用者直接控制，這裡僅同步顯示
             const rmbInput = document.getElementById('vcotc-rmb-input');
             const usdtInput = document.getElementById('vcotc-usdt-input');
-            if (rmbInput && parseFloat(rmbInput.value) !== totalRMB) rmbInput.value = totalRMB;
-            if (usdtInput && parseFloat(usdtInput.value) !== totalUSDT) usdtInput.value = totalUSDT;
+            // 僅在使用者未聚焦輸入框時更新，避免打斷手動編輯
+            if (rmbInput && document.activeElement !== rmbInput) rmbInput.value = totalRMB;
+            if (usdtInput && document.activeElement !== usdtInput) usdtInput.value = totalUSDT;
 
             const tbody = document.getElementById('vcotc-table-body');
             const emptyState = document.getElementById('vcotc-empty-state');
+            if (!tbody) return;
             tbody.innerHTML = '';
-            
-            // 渲染前排序：日期倒序，同日期按 createdAt 倒序
+
             const sortedVcotc = [...vcotcData].sort((a, b) => {
                 const dateCmp = (b.date || '').localeCompare(a.date || '');
                 if (dateCmp !== 0) return dateCmp;
@@ -1654,7 +1721,6 @@
                 sortedVcotc.forEach(row => {
                     const rmbClass = parseFloat(row.rmb) < 0 ? 'text-red-600' : 'text-[#3E2F28]';
                     const uClass = parseFloat(row.uQty) < 0 ? 'text-red-600' : 'text-[#A08070] font-extrabold';
-
                     const tr = document.createElement('tr');
                     const rowBg = row.rowColor === 'warm'
                         ? 'background:rgba(210,180,160,0.22);'
@@ -1672,7 +1738,7 @@
                         <td class="p-3.5 text-right font-mono text-[#3E2F28]/60">${row.rate}</td>
                         <td class="p-3.5 text-[#3E2F28]/70 italic text-[11px]">${row.remark || '-'}</td>
                         <td class="p-3.5 text-center">
-                          <button onclick="vcotcDeleteRow('${row.createdAt || ''}','${row.date || ''}','${row.channelNo || ''}')" class="p-1.5 rounded bg-red-50 text-red-500 hover:bg-red-100 transition border border-red-200" title="刪除">
+                          <button onclick="vcotcDeleteRow('${row.id}')" class="p-1.5 rounded bg-red-50 text-red-500 hover:bg-red-100 transition border border-red-200" title="刪除">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                               <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
                             </svg>
@@ -1684,43 +1750,32 @@
             }
         }
 
-        function handleVCOTC_CSVUpload(event) {
+        async function handleVCOTC_CSVUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
+            if (!vcotcCloudReady()) { showToast("雲端尚未連線，無法匯入", "info"); event.target.value=''; return; }
 
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 const text = e.target.result;
                 const lines = text.split('\n').filter(line => line.trim() !== '');
-                
                 let isDataSection = false;
                 let newData = [];
-                
+                let csvRMB = null, csvUSDT = null;
+
                 for (let i = 0; i < lines.length; i++) {
                     const columns = lines[i].split(',');
-                    
                     if (lines[i].includes('四方通道馀额（RMB）') && lines[i].includes('可用资产(USDT)')) {
                         try {
                             const rmbIndex = columns.findIndex(c => c.includes('四方通道馀额（RMB）')) + 1;
                             const usdtIndex = columns.findIndex(c => c.includes('可用资产(USDT)')) + 1;
-                            
-                            if(columns[rmbIndex] && !isNaN(parseFloat(columns[rmbIndex]))) {
-                                totalRMB = parseFloat(columns[rmbIndex]);
-                            }
-                            if(columns[usdtIndex] && !isNaN(parseFloat(columns[usdtIndex]))) {
-                                totalUSDT = parseFloat(columns[usdtIndex]);
-                            }
+                            if (columns[rmbIndex] && !isNaN(parseFloat(columns[rmbIndex]))) csvRMB = parseFloat(columns[rmbIndex]);
+                            if (columns[usdtIndex] && !isNaN(parseFloat(columns[usdtIndex]))) csvUSDT = parseFloat(columns[usdtIndex]);
                         } catch(e) {}
                     }
-
-                    if (lines[i].includes('通道单号') && lines[i].includes('商户单号')) {
-                        isDataSection = true;
-                        continue;
-                    }
-                    
+                    if (lines[i].includes('通道单号') && lines[i].includes('商户单号')) { isDataSection = true; continue; }
                     if (isDataSection && columns.length >= 5) {
                         if (!columns[1] || columns[1].trim() === '') continue;
-                        
                         newData.push({
                             date: columns[0] ? columns[0].trim() : '',
                             channelNo: columns[1] ? columns[1].trim() : '',
@@ -1728,25 +1783,50 @@
                             rmb: columns[3] ? columns[3].trim() : '',
                             uQty: columns[4] ? columns[4].trim() : '',
                             rate: columns[5] ? columns[5].trim() : '',
-                            remark: columns[6] ? columns[6].trim() : ''
+                            remark: columns[6] ? columns[6].trim() : '',
+                            rowColor: 'none'
                         });
                     }
                 }
 
                 if (newData.length > 0) {
-                    vcotcData = newData;
-                    renderVCOTCData();
-                    showToast(`成功匯入 ${newData.length} 筆 VCOTC 明細！`);
+                    try {
+                        const { writeBatch, doc, setDoc } = window.fbFns;
+                        const batch = writeBatch(window.fbDb);
+                        // 先清空雲端現有明細，再批量寫入
+                        vcotcData.forEach(r => batch.delete(doc(vcotcCol(), r.id)));
+                        const base = Date.now();
+                        newData.forEach((row, i) => batch.set(doc(vcotcCol()), { ...row, createdAt: base + i }));
+                        await batch.commit();
+                        if (csvRMB !== null || csvUSDT !== null) {
+                            await setDoc(vcotcMetaDoc(), {
+                                totalRMB:  csvRMB  !== null ? csvRMB  : totalRMB,
+                                totalUSDT: csvUSDT !== null ? csvUSDT : totalUSDT
+                            });
+                        }
+                        showToast(`成功匯入 ${newData.length} 筆 VCOTC 明細並同步雲端！`);
+                    } catch (err) {
+                        console.error("VCOTC CSV 匯入失敗:", err);
+                        showToast("匯入雲端失敗", "error");
+                    }
                 } else {
                     showToast('CSV 格式解析失敗，未找到明細資料。', 'error');
                 }
             };
             reader.readAsText(file);
-            event.target.value = ''; 
+            event.target.value = '';
         }
+
+        window.openVcotcAddModal = openVcotcAddModal;
+        window.closeVcotcAddModal = closeVcotcAddModal;
+        window.submitVcotcAdd = submitVcotcAdd;
+        window.vcotcDeleteRow = vcotcDeleteRow;
+        window.handleVCOTC_CSVUpload = handleVCOTC_CSVUpload;
 
         document.addEventListener('DOMContentLoaded', () => {
             renderVCOTCData();
+            // 若雲端驗證早於本 script 完成，主動補啟動
+            if (typeof window.startVcotcCloud === 'function' && window.fbDb) window.startVcotcCloud();
         });
     </script>
 </body>
