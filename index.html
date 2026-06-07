@@ -1028,7 +1028,7 @@
                 cardStyleClass += " ring-4 ring-[#A08070]/30";
             }
 
-            card.className = `glass-card py-3 px-3.5 rounded-[1.25rem] flex items-center justify-between cursor-pointer relative group select-none ${cardStyleClass} min-h-[68px]`;
+            card.className = `glass-card py-3 px-3.5 rounded-[1.3rem] flex items-center justify-between cursor-pointer relative group select-none ${cardStyleClass} min-h-[76px]`;
 
             card.onclick = (e) => {
                 if (e.target.closest('button')) {
@@ -1073,15 +1073,15 @@
             card.innerHTML = `
                 <!-- 左側：圖標與名稱 (盡量單行，太長折行) -->
                 <div class="flex items-center gap-3 flex-1 min-w-0 pointer-events-none" style="align-items:center;">
-                  <span class="w-9 h-9 rounded-xl bg-white/70 flex items-center justify-center shrink-0 shadow-sm text-lg">${matchedIcon}</span>
+                  <span class="w-10 h-10 rounded-xl bg-white/70 flex items-center justify-center shrink-0 shadow-sm text-xl">${matchedIcon}</span>
                   <div class="flex-1 min-w-0 pr-1">
-                    <p style="word-break:break-word;white-space:pre-line;overflow-wrap:break-word;" class="font-extrabold text-xs sm:text-[0.8rem] text-[#3E2F28] leading-snug" title="${item.name}">${item.name.includes('支付寶') && item.name.includes('（') ? item.name.replace('支付寶（', '支付寶\n（') : item.name}</p>
+                    <p style="word-break:break-word;white-space:pre-line;overflow-wrap:break-word;" class="font-extrabold text-xs sm:text-[0.85rem] text-[#3E2F28] leading-snug" title="${item.name}">${item.name.includes('支付寶') && item.name.includes('（') ? item.name.replace('支付寶（', '支付寶\n（') : item.name}</p>
                   </div>
                 </div>
                 
                 <!-- 右側：金額（Hover時向左漸隱平移） -->
                 <div class="flex items-center shrink-0 pointer-events-none transition-all duration-300 group-hover:opacity-10 group-hover:-translate-x-4">
-                  <p class="font-bold text-xs sm:text-[0.8rem] text-[#3E2F28] font-mono tabular-nums text-right">${formatMoney(item.amount)}</p>
+                  <p class="font-bold text-xs sm:text-[0.85rem] text-[#3E2F28] font-mono tabular-nums text-right">${formatMoney(item.amount)}</p>
                 </div>
 
                 <!-- 絕對定位操作浮現按鈕 -->
@@ -1732,7 +1732,7 @@
                     tr.innerHTML = `
                         <td class="p-3.5 font-mono text-[#3E2F28]/80">${row.date}</td>
                         <td class="p-3.5 font-mono text-[11px] text-[#3E2F28]/80 select-all">${row.channelNo}</td>
-                        <td class="p-3.5 font-mono text-[11px] text-[#3E2F28]/80 truncate max-w-[150px] select-all" title="${row.merchantNo}">${row.merchantNo}</td>
+                        <td class="p-3.5 font-mono text-[11px] text-[#3E2F28]/80 whitespace-nowrap select-all">${row.merchantNo}</td>
                         <td class="p-3.5 text-right font-mono font-extrabold tabular-nums ${rmbClass}">${row.rmb}</td>
                         <td class="p-3.5 text-right font-mono font-extrabold tabular-nums ${uClass}">${row.uQty}</td>
                         <td class="p-3.5 text-right font-mono text-[#3E2F28]/60">${row.rate}</td>
