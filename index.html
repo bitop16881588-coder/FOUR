@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>四方殘留暫存主控台 | 精緻雲端數據管理</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=cwTeXYen&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-tc-webfont/style.css" rel="stylesheet">
     <style>
         @font-face {
             font-family: 'JiangChengSong';
@@ -75,9 +77,15 @@
             box-shadow: 3px 3px 0px var(--color-dark);
         }
 
-        /* 等寬數據字體 */
+        /* 人民幣符號 ¥ 改用比例字體，與等寬數字做出區隔 */
+        @font-face {
+            font-family: 'RMBYen';
+            src: local('Segoe UI'), local('Helvetica Neue'), local('Helvetica'), local('Arial'), local('PingFang TC'), local('Microsoft JhengHei'), local('Noto Sans TC');
+            unicode-range: U+00A5;
+        }
+        /* 等寬數據字體（¥ 交由 RMBYen 呈現） */
         .font-mono {
-            font-family: 'JetBrains Mono', 'Courier New', Courier, monospace !important;
+            font-family: 'RMBYen', 'Courier Prime', 'Courier New', Courier, monospace !important;
         }
 
         .tabular-nums {
@@ -207,11 +215,11 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full lg:w-auto shrink-0 text-xs">
                 
                 <!-- 1. 初始餘額 -->
-                <div class="bg-white/40 p-2.5 rounded-xl border border-[#3E2F28]/25 text-right min-w-[110px] focus-within:ring-2 focus-within:ring-[#A08070]/20 transition-all">
+                <div class="bg-white/40 p-2.5 rounded-xl border border-[#3E2F28]/25 text-right min-w-[150px] focus-within:ring-2 focus-within:ring-[#A08070]/20 transition-all">
                     <span class="text-[9px] text-[#3E2F28]/80 block font-semibold mb-0.5">初始餘額</span>
                     <div class="flex items-center justify-end font-mono">
                         <span class="text-xs font-extrabold text-[#3E2F28] mr-0.5">¥</span>
-                        <input type="number" step="0.001" id="detail-initial-balance" onchange="syncInitialBalanceToCloud(this.value)" value="0.000" class="w-24 bg-transparent text-right text-base font-bold text-[#3E2F28] outline-none border-b border-transparent hover:border-[#3E2F28]/20 focus:border-[#3E2F28]">
+                        <input type="number" step="0.001" id="detail-initial-balance" onchange="syncInitialBalanceToCloud(this.value)" value="0.000" class="w-36 bg-transparent text-right text-base font-bold text-[#3E2F28] outline-none border-b border-transparent hover:border-[#3E2F28]/20 focus:border-[#3E2F28]">
                     </div>
                 </div>
 
@@ -617,19 +625,19 @@
                         <label class="flex-1 cursor-pointer">
                             <input type="radio" name="vcotc-row-color" value="none" checked class="hidden peer">
                             <div class="peer-checked:ring-2 peer-checked:ring-[#3E2F28] rounded-xl p-2.5 border border-[#3E2F28]/20 text-center text-[11px] font-bold text-[#3E2F28]/60 bg-white/50 transition">
-                                ⬜ 無
+                                ⬜ 充值
                             </div>
                         </label>
                         <label class="flex-1 cursor-pointer">
                             <input type="radio" name="vcotc-row-color" value="warm" class="hidden peer">
-                            <div class="peer-checked:ring-2 peer-checked:ring-[#3E2F28] rounded-xl p-2.5 border border-[#3E2F28]/20 text-center text-[11px] font-bold transition" style="background:rgba(210,180,160,0.35);color:#3E2F28;">
-                                🟤 暖棕
+                            <div class="peer-checked:ring-2 peer-checked:ring-[#3E2F28] rounded-xl p-2.5 border border-[#3E2F28]/20 text-center text-[11px] font-bold transition" style="background:rgba(226,196,120,0.45);color:#3E2F28;">
+                                🟡 手續費
                             </div>
                         </label>
                         <label class="flex-1 cursor-pointer">
                             <input type="radio" name="vcotc-row-color" value="cool" class="hidden peer">
-                            <div class="peer-checked:ring-2 peer-checked:ring-[#3E2F28] rounded-xl p-2.5 border border-[#3E2F28]/20 text-center text-[11px] font-bold transition" style="background:rgba(160,200,180,0.35);color:#3E2F28;">
-                                🟢 薄荷綠
+                            <div class="peer-checked:ring-2 peer-checked:ring-[#3E2F28] rounded-xl p-2.5 border border-[#3E2F28]/20 text-center text-[11px] font-bold transition" style="background:rgba(124,150,181,0.42);color:#3E2F28;">
+                                🔵 下發
                             </div>
                         </label>
                     </div>
@@ -1255,7 +1263,7 @@
                         <td class="p-3.5"><span class="bg-[#3E2F28]/5 text-[#3E2F28] px-2 py-1 rounded-lg font-bold">${row.merchant}</span></td>
                         <td class="p-3.5 text-slate-700 font-mono tracking-tight select-all">${row.orderNo}</td>
                         <td class="p-3.5 text-[#3E2F28] font-bold font-mono tabular-nums">¥ ${Number(row.fee || 0).toFixed(3)}</td>
-                        <td class="p-3.5 text-[#3E2F28]/80" style="font-family:'JiangChengSong','Noto Sans SC',serif;font-size:0.75rem;font-style:italic;letter-spacing:0.03em;">${row.remark || '無'}</td>
+                        <td class="p-3.5 text-[#3E2F28]/80" style="font-family:'cwTeXYen','LXGW WenKai TC','Noto Serif TC',serif;font-size:0.78rem;letter-spacing:0.02em;">${row.remark || '無'}</td>
                         <td class="p-3.5 text-right font-extrabold text-[#3E2F28] text-sm font-mono tabular-nums">¥ ${Number(row.amount || 0).toLocaleString('zh-TW', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}</td>
                         <td class="p-3.5 text-center">
                           <button onclick="triggerDeleteDetail('${row.id}')" class="p-1.5 rounded bg-red-50 text-red-600 hover:bg-red-100 transition-colors border border-red-200" title="刪除">
@@ -1707,6 +1715,7 @@
             const emptyState = document.getElementById('vcotc-empty-state');
             if (!tbody) return;
             tbody.innerHTML = '';
+            const todayStr = new Date().toISOString().split('T')[0];
 
             const sortedVcotc = [...vcotcData].sort((a, b) => {
                 const dateCmp = (b.date || '').localeCompare(a.date || '');
@@ -1719,24 +1728,31 @@
             } else {
                 emptyState.classList.add('hidden');
                 sortedVcotc.forEach(row => {
-                    const rmbClass = parseFloat(row.rmb) < 0 ? 'text-red-600' : 'text-[#3E2F28]';
-                    const uClass = parseFloat(row.uQty) < 0 ? 'text-red-600' : 'text-[#A08070] font-extrabold';
+                    const isFee = row.rowColor === 'warm';
+                    const rmbClass = (isFee || parseFloat(row.rmb) < 0) ? 'text-red-600' : 'text-[#3E2F28]';
+                    const uClass = (isFee || parseFloat(row.uQty) < 0) ? 'text-red-600' : 'text-[#A08070] font-extrabold';
+                    const isToday = row.date === todayStr;
                     const tr = document.createElement('tr');
                     const rowBg = row.rowColor === 'warm'
-                        ? 'background:rgba(210,180,160,0.22);'
+                        ? 'background:rgba(226,196,120,0.32);'
                         : row.rowColor === 'cool'
-                        ? 'background:rgba(160,200,180,0.22);'
+                        ? 'background:rgba(124,150,181,0.30);'
                         : '';
                     tr.setAttribute('style', rowBg);
-                    tr.className = "hover:brightness-95 transition-all border-l-4 border-transparent hover:border-[#A08070]/50";
+                    tr.className = `transition-all border-l-4 ${isToday ? 'bg-[#A08070]/15 border-[#A08070]' : 'border-transparent hover:bg-white/20 hover:border-[#A08070]/50'}`;
                     tr.innerHTML = `
-                        <td class="p-3.5 font-mono text-[#3E2F28]/80">${row.date}</td>
-                        <td class="p-3.5 font-mono text-[11px] text-[#3E2F28]/80 select-all">${row.channelNo}</td>
-                        <td class="p-3.5 font-mono text-[11px] text-[#3E2F28]/80 whitespace-nowrap select-all">${row.merchantNo}</td>
-                        <td class="p-3.5 text-right font-mono font-extrabold tabular-nums ${rmbClass}">${row.rmb}</td>
-                        <td class="p-3.5 text-right font-mono font-extrabold tabular-nums ${uClass}">${row.uQty}</td>
-                        <td class="p-3.5 text-right font-mono text-[#3E2F28]/60">${row.rate}</td>
-                        <td class="p-3.5 text-[#3E2F28]/70 italic text-[11px]">${row.remark || '-'}</td>
+                        <td class="p-3.5 font-bold text-[#3E2F28]">
+                            <div class="flex items-center gap-1.5 font-mono">
+                                ${row.date}
+                                ${isToday ? '<span class="bg-[#A08070] text-white text-[9px] px-1.5 py-0.5 rounded font-extrabold animate-pulse">NEW</span>' : ''}
+                            </div>
+                        </td>
+                        <td class="p-3.5 font-mono tracking-tight text-[#3E2F28]/80 select-all">${row.channelNo}</td>
+                        <td class="p-3.5 font-mono tracking-tight text-[#3E2F28]/80 whitespace-nowrap select-all">${row.merchantNo}</td>
+                        <td class="p-3.5 text-right font-mono font-extrabold tabular-nums text-[0.81rem] ${rmbClass}">${row.rmb}</td>
+                        <td class="p-3.5 text-right font-mono font-extrabold tabular-nums text-[0.81rem] ${uClass}">${row.uQty}</td>
+                        <td class="p-3.5 text-right font-mono text-[0.81rem] text-[#3E2F28]/60">${row.rate}</td>
+                        <td class="p-3.5 text-[#3E2F28]/80" style="font-family:'cwTeXYen','LXGW WenKai TC','Noto Serif TC',serif;font-size:0.78rem;letter-spacing:0.02em;">${row.remark || '-'}</td>
                         <td class="p-3.5 text-center">
                           <button onclick="vcotcDeleteRow('${row.id}')" class="p-1.5 rounded bg-red-50 text-red-500 hover:bg-red-100 transition border border-red-200" title="刪除">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
