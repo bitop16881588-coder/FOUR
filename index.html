@@ -90,6 +90,7 @@
 
         .tabular-nums {
             font-variant-numeric: tabular-nums;
+            letter-spacing: -0.03em;
         }
 
         /* 精緻滾動條 */
@@ -218,7 +219,6 @@
                 <div class="bg-white/40 p-2.5 rounded-xl border border-[#3E2F28]/25 text-right min-w-[150px] focus-within:ring-2 focus-within:ring-[#A08070]/20 transition-all">
                     <span class="text-[9px] text-[#3E2F28]/80 block font-semibold mb-0.5">初始餘額</span>
                     <div class="flex items-center justify-end font-mono">
-                        <span class="text-xs font-extrabold text-[#3E2F28] mr-0.5">¥</span>
                         <input type="number" step="0.001" id="detail-initial-balance" onchange="syncInitialBalanceToCloud(this.value)" value="0.000" class="w-36 bg-transparent text-right text-base font-bold text-[#3E2F28] outline-none border-b border-transparent hover:border-[#3E2F28]/20 focus:border-[#3E2F28]">
                     </div>
                 </div>
@@ -236,7 +236,7 @@
                 <div class="bg-[#3E2F28] text-white p-2.5 rounded-xl border border-black/10 text-right min-w-[120px] shadow-md relative overflow-hidden">
                     <div class="absolute -right-2 -bottom-2 text-2xl opacity-10">🏆</div>
                     <span class="text-[9px] block font-semibold text-slate-200 mb-0.5">最終殘留總額</span>
-                    <span class="text-xl font-bold font-mono tabular-nums" id="sheet-final-residual-display">¥0.000</span>
+                    <span class="text-xl font-bold font-mono tabular-nums" id="sheet-final-residual-display">0.000</span>
                 </div>
 
             </div>
@@ -244,7 +244,7 @@
 
         <!-- 主Tab 1: 總覽卡片網格 -->
         <div id="main-tab-summary" class="space-y-6">
-            
+
             <!-- 內部通道 -->
             <div>
                 <div class="flex items-center justify-between mb-4 px-2">
@@ -351,7 +351,6 @@
                         <span class="text-[9px] bg-[#A08070]/20 text-[#A08070] px-1.5 py-0.5 rounded font-bold">可編輯</span>
                     </div>
                     <div class="flex items-baseline gap-1">
-                        <span class="text-2xl font-extrabold font-mono text-[#3E2F28]">¥</span>
                         <input type="number" step="0.001" id="vcotc-rmb-input"
                             value="288718.796"
                             onchange="vcotcUpdateTotals(parseFloat(this.value) || 0, null);"
@@ -406,14 +405,35 @@
         <div class="glass-panel p-6 rounded-[2rem] w-full max-w-sm shadow-2xl relative border-2 border-[#3E2F28]">
             <button onclick="closeEditChannelModal()" class="absolute top-4 right-4 text-[#3E2F28] hover:text-[#3E2F28]/60 transition">✕</button>
             <h3 class="text-sm font-bold text-[#3E2F28] mb-4 flex items-center gap-2">
-                ✏️ 修改通道名稱
+                ✏️ 修改通道
             </h3>
-            <input type="text" id="edit-channel-name-input" class="w-full bg-white/60 focus:bg-white p-3 rounded-xl border border-[#3E2F28]/20 outline-none text-xs font-semibold mb-5 focus:ring-2 focus:ring-[#A08070]/30" placeholder="請輸入新通道名稱" required>
+
+            <label class="block font-bold text-[#3E2F28] mb-1 text-xs">通道名稱</label>
+            <input type="text" id="edit-channel-name-input" class="w-full bg-white/60 focus:bg-white p-3 rounded-xl border border-[#3E2F28]/20 outline-none text-xs font-semibold mb-4 focus:ring-2 focus:ring-[#A08070]/30" placeholder="請輸入新通道名稱" required>
+
+            <div class="grid grid-cols-2 gap-3 mb-5 text-xs">
+                <div>
+                    <label class="block font-bold text-[#3E2F28] mb-1">卡片圖示</label>
+                    <input type="text" id="edit-channel-icon" maxlength="8" placeholder="留空＝自動" class="w-full bg-white/60 focus:bg-white p-2.5 rounded-xl border border-[#3E2F28]/20 outline-none text-center text-base">
+                </div>
+                <div>
+                    <label class="block font-bold text-[#3E2F28] mb-1">卡片顏色</label>
+                    <div class="flex items-center gap-2 bg-white/50 rounded-xl border border-[#3E2F28]/20 px-2.5 py-2 h-[42px]">
+                        <label class="flex items-center gap-1.5 font-bold text-[#3E2F28] cursor-pointer whitespace-nowrap text-[11px]">
+                            <input type="checkbox" id="edit-channel-usecolor" class="accent-[#A08070]">
+                            自訂色
+                        </label>
+                        <input type="color" id="edit-channel-color" value="#C4A08E" class="ml-auto w-8 h-8 rounded-lg cursor-pointer bg-transparent border border-[#3E2F28]/15 p-0.5">
+                    </div>
+                </div>
+            </div>
+            <p class="text-[10px] text-[#3E2F28]/55 -mt-3 mb-4">圖示留空＝套用自動圖示；顏色不勾「自訂色」＝跟隨系列色。</p>
+
             <div class="flex gap-3 text-xs">
                 <button onclick="closeEditChannelModal()" class="flex-1 bg-white/40 hover:bg-white/60 py-3 rounded-xl font-bold transition border border-[#3E2F28]/20">
                     取消
                 </button>
-                <button onclick="executeEditChannelName()" class="flex-1 bg-[#3E2F28] hover:bg-black text-white py-3 rounded-xl font-bold transition shadow-md border border-[#3E2F28]">
+                <button onclick="executeEditChannel()" class="flex-1 bg-[#3E2F28] hover:bg-black text-white py-3 rounded-xl font-bold transition shadow-md border border-[#3E2F28]">
                     儲存修改
                 </button>
             </div>
@@ -561,6 +581,23 @@
                     <input type="number" step="0.01" id="new-channel-balance" placeholder="0.00" value="0.00" class="w-full bg-white/60 focus:bg-white p-2.5 rounded-xl border border-[#3E2F28]/20 outline-none" required>
                 </div>
 
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-[#3E2F28] mb-1">卡片圖示（選填）</label>
+                        <input type="text" id="new-channel-icon" maxlength="8" placeholder="如 🐼，留空＝自動" class="w-full bg-white/60 focus:bg-white p-2.5 rounded-xl border border-[#3E2F28]/20 outline-none text-center">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-[#3E2F28] mb-1">卡片顏色</label>
+                        <div class="flex items-center gap-2 bg-white/50 rounded-xl border border-[#3E2F28]/20 px-3 py-2 h-[42px]">
+                            <label class="flex items-center gap-1.5 text-[11px] font-bold text-[#3E2F28] cursor-pointer whitespace-nowrap">
+                                <input type="checkbox" id="new-channel-usecolor" class="accent-[#A08070]">
+                                自訂色
+                            </label>
+                            <input type="color" id="new-channel-color" value="#C4A08E" class="ml-auto w-8 h-8 rounded-lg cursor-pointer bg-transparent border border-[#3E2F28]/15 p-0.5">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="flex gap-3 pt-2">
                     <button type="button" onclick="closeAddChannelModal()" class="flex-1 bg-white/40 hover:bg-white/60 py-3 rounded-xl font-bold transition border border-[#3E2F28]/20">
                         取消
@@ -636,8 +673,8 @@
                         </label>
                         <label class="flex-1 cursor-pointer">
                             <input type="radio" name="vcotc-row-color" value="cool" class="hidden peer">
-                            <div class="peer-checked:ring-2 peer-checked:ring-[#3E2F28] rounded-xl p-2.5 border border-[#3E2F28]/20 text-center text-[11px] font-bold transition" style="background:rgba(124,150,181,0.42);color:#3E2F28;">
-                                🔵 下發
+                            <div class="peer-checked:ring-2 peer-checked:ring-[#3E2F28] rounded-xl p-2.5 border border-[#3E2F28]/20 text-center text-[11px] font-bold transition" style="background:rgba(154,168,150,0.46);color:#3E2F28;">
+                                🟢 下發
                             </div>
                         </label>
                     </div>
@@ -679,7 +716,7 @@
         window.syncFeeRateToCloud = syncFeeRateToCloud;
         window.triggerEditChannel = triggerEditChannel;
         window.closeEditChannelModal = closeEditChannelModal;
-        window.executeEditChannelName = executeEditChannelName;
+        window.executeEditChannel = executeEditChannel;
 
 
         window.openVcotcAddModal = openVcotcAddModal;
@@ -720,6 +757,30 @@
         let currentSelectedChannelId = ""; 
         let draggedId = null;
         let sortOrderMap = {}; // { channelId: sortIndex } 記憶拖拽後的排序
+
+        /* ===== 圖示對照與卡片顏色工具 ===== */
+        const DEFAULT_CARD_HEX = '#D4C4BA'; // 未設自訂色時的預設卡片底色（奶茶玫瑰灰棕）
+
+        // 內建圖示對照（依名稱）；使用者自訂圖示優先於此
+        const ICON_MAP = {
+            "jj卡轉卡":"💳","jj支付寶":"🐼","jj微信":"🟢","jj數位人民幣":"🏦",
+            "和奕支付寶":"🦊","和奕代收":"🤲","新寶支付寶":"💠","新寶支付寶(小額)":"🔹",
+            "vcotc支付寶":"🛡️","xq小額卡卡":"⚡","紅喜鵲支轉支":"🔀","紅喜鵲卡轉卡":"🐦",
+            "全通支付寶":"🌐","碼上支付寶(新人層)":"🚀","碼上純代收":"📥","碼上小額卡卡":"📲",
+            "gosm支付寶":"🎯","gosm微信":"📡","zcpay支付寶":"💸","樂支付寶":"🎵","wf支付寶":"🌊",
+        };
+        // 自動圖示（未自訂時）：iconMap → 資料內建 icon → 預設
+        function resolveAutoIcon(nameKey, dataIcon) {
+            return ICON_MAP[nameKey] || dataIcon || "🔌";
+        }
+        function hexToRgb(hex) {
+            let h = (hex || '').replace('#','');
+            if (h.length === 3) h = h.split('').map(c => c + c).join('');
+            const n = parseInt(h, 16);
+            if (isNaN(n)) return '212,196,186';
+            return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
+        }
+        /* ===== 工具區塊結束 ===== */
 
         const initAuth = async () => {
             try {
@@ -917,7 +978,7 @@
         }
 
         function formatMoney(num) {
-            return "¥ " + Number(num).toLocaleString('zh-TW', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+            return Number(num).toLocaleString('zh-TW', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
         }
 
         function recalculateAndRender() {
@@ -1030,7 +1091,8 @@
             const isSelected = (currentSelectedChannelId === item.id);
             const isCardActive = item.amount > 0;
             
-            let cardStyleClass = isCardActive ? "glass-card-active" : "glass-card-inactive";
+            // 不再區分有無餘額：全部使用實底樣式（深框硬陰影）
+            let cardStyleClass = "glass-card-active";
 
             if (isSelected) {
                 cardStyleClass += " ring-4 ring-[#A08070]/30";
@@ -1048,35 +1110,16 @@
                 showToast(`已載入 ${item.name} 的交易對賬明細`);
             };
 
-            // 精準逐一對應每個通道的獨特 emoji
-            const iconMap = {
-                "jj卡轉卡":       "💳",
-                "jj支付寶":       "🐼",
-                "jj微信":         "🟢",
-                "jj數位人民幣":   "🏦",
-                "和奕支付寶":     "🦊",
-                "和奕代收":       "🤲",
-                "新寶支付寶":     "💠",
-                "新寶支付寶(小額)":"🔹",
-                "vcotc支付寶":    "🛡️",
-                "xq小額卡卡":     "⚡",
-                "紅喜鵲支轉支":   "🔀",
-                "紅喜鵲卡轉卡":   "🐦",
-                "全通支付寶":     "🌐",
-                "碼上支付寶(新人層)": "🚀",
-                "碼上純代收":     "📥",
-                "碼上小額卡卡":   "📲",
-                "gosm支付寶":     "🎯",
-                "gosm微信":       "📡",
-                "zcpay支付寶":    "💸",
-                "樂支付寶":       "🎵",
-                // 外部通道
-                "wf支付寶":       "🌊",
-            };
+            // 圖示：使用全域 ICON_MAP
             const nameKey = item.name.toLowerCase()
                 .replace(/\s+/g,'')
                 .replace(/（/g,'(').replace(/）/g,')');
-            let matchedIcon = iconMap[nameKey] || "🔌";
+            // 圖示優先序：使用者自訂 → iconMap → 資料內建 icon → 預設
+            let matchedIcon = item.userIcon || resolveAutoIcon(nameKey, item.icon);
+
+            // 底色：有自訂色才覆寫，否則用預設奶茶色實底
+            const cardHex = item.color || DEFAULT_CARD_HEX;
+            card.style.setProperty('background', `rgba(${hexToRgb(cardHex)},0.82)`, 'important');
 
             card.innerHTML = `
                 <!-- 左側：圖標與名稱 (盡量單行，太長折行) -->
@@ -1089,7 +1132,7 @@
                 
                 <!-- 右側：金額（Hover時向左漸隱平移） -->
                 <div class="flex items-center shrink-0 pointer-events-none transition-all duration-300 group-hover:opacity-10 group-hover:-translate-x-4">
-                  <p class="font-bold text-xs sm:text-[0.85rem] text-[#3E2F28] font-mono tabular-nums text-right">${formatMoney(item.amount)}</p>
+                  <p class="font-bold text-xs sm:text-[1rem] text-[#3E2F28] font-mono tabular-nums text-right">${formatMoney(item.amount)}</p>
                 </div>
 
                 <!-- 絕對定位操作浮現按鈕 -->
@@ -1117,7 +1160,18 @@
         function triggerEditChannel(event, id, currentName) {
             event.stopPropagation();
             pendingChannelIdToEdit = id;
-            document.getElementById('edit-channel-name-input').value = currentName;
+            const ch = channelsList.find(c => c.id === id) || {};
+            const nk = (ch.name || '').toLowerCase().replace(/\s+/g,'').replace(/（/g,'(').replace(/）/g,')');
+
+            document.getElementById('edit-channel-name-input').value = ch.name || currentName || '';
+            // 圖示：value=自訂；placeholder=自動圖示
+            const iconInput = document.getElementById('edit-channel-icon');
+            iconInput.value = ch.userIcon || '';
+            iconInput.placeholder = resolveAutoIcon(nk, ch.icon);
+            // 顏色：有自訂則勾選並帶入；否則預填預設色供參考
+            document.getElementById('edit-channel-usecolor').checked = !!ch.color;
+            document.getElementById('edit-channel-color').value = ch.color || DEFAULT_CARD_HEX;
+
             document.getElementById('edit-channel-modal').classList.remove('hidden');
         }
 
@@ -1126,19 +1180,30 @@
             pendingChannelIdToEdit = "";
         }
 
-        async function executeEditChannelName() {
+        async function executeEditChannel() {
+            const id = pendingChannelIdToEdit;
+            if (!id) return;
             const newName = document.getElementById('edit-channel-name-input').value.trim();
             if (!newName) {
                 showToast("通道名稱不能為空", "info");
                 return;
             }
+            const iconVal = document.getElementById('edit-channel-icon').value.trim();
+            const useColor = document.getElementById('edit-channel-usecolor').checked;
+            const colorVal = useColor ? document.getElementById('edit-channel-color').value : '';
+
+            // 本地即時更新（離線時也有反應）
+            const ch = channelsList.find(c => c.id === id);
+            if (ch) { ch.name = newName; ch.userIcon = iconVal; ch.color = colorVal; }
+            recalculateAndRender();
+
             try {
-                const channelDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'channels', pendingChannelIdToEdit);
-                await updateDoc(channelDocRef, { name: newName });
-                showToast(`通道名稱已成功更新為「${newName}」！`);
+                const channelDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'channels', id);
+                await updateDoc(channelDocRef, { name: newName, userIcon: iconVal, color: colorVal });
+                showToast(`已更新「${newName}」`);
                 closeEditChannelModal();
             } catch (err) {
-                console.error("更新通道名稱失敗:", err);
+                console.error("更新通道失敗:", err);
                 showToast("雲端更新失敗", "error");
             }
         }
@@ -1262,9 +1327,9 @@
                         </td>
                         <td class="p-3.5"><span class="bg-[#3E2F28]/5 text-[#3E2F28] px-2 py-1 rounded-lg font-bold">${row.merchant}</span></td>
                         <td class="p-3.5 text-slate-700 font-mono tracking-tight select-all">${row.orderNo}</td>
-                        <td class="p-3.5 text-[#3E2F28] font-bold font-mono tabular-nums">¥ ${Number(row.fee || 0).toFixed(3)}</td>
+                        <td class="p-3.5 text-[#3E2F28] font-bold font-mono tabular-nums text-[0.86rem]">${Number(row.fee || 0).toFixed(3)}</td>
                         <td class="p-3.5 text-[#3E2F28]/80" style="font-family:'cwTeXYen','LXGW WenKai TC','Noto Serif TC',serif;font-size:0.78rem;letter-spacing:0.02em;">${row.remark || '無'}</td>
-                        <td class="p-3.5 text-right font-extrabold text-[#3E2F28] text-sm font-mono tabular-nums">¥ ${Number(row.amount || 0).toLocaleString('zh-TW', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}</td>
+                        <td class="p-3.5 text-right font-extrabold text-[#3E2F28] text-[0.86rem] font-mono tabular-nums">${Number(row.amount || 0).toLocaleString('zh-TW', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}</td>
                         <td class="p-3.5 text-center">
                           <button onclick="triggerDeleteDetail('${row.id}')" class="p-1.5 rounded bg-red-50 text-red-600 hover:bg-red-100 transition-colors border border-red-200" title="刪除">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -1380,6 +1445,9 @@
             const type = document.getElementById('new-channel-type').value;
             const balance = parseFloat(document.getElementById('new-channel-balance').value) || 0;
             const fee = parseFloat(document.getElementById('new-channel-fee').value) || 3.0;
+            const useColor = document.getElementById('new-channel-usecolor').checked;
+            const color = document.getElementById('new-channel-color').value;
+            const iconVal = document.getElementById('new-channel-icon').value.trim();
 
             const isDuplicate = channelsList.some(item => normalizeName(item.name) === normalizeName(name) && item.type === type);
             if (isDuplicate) {
@@ -1389,12 +1457,15 @@
 
             try {
                 const channelsCol = collection(db, 'artifacts', appId, 'public', 'data', 'channels');
-                const newChRef = await addDoc(channelsCol, {
+                const channelPayload = {
                     name: name,
                     type: type,
                     fee: fee + "%",
                     initialBalance: balance
-                });
+                };
+                if (useColor) channelPayload.color = color; // 指定自訂色，否則跟隨系列色
+                if (iconVal) channelPayload.userIcon = iconVal; // 指定圖示，否則自動
+                const newChRef = await addDoc(channelsCol, channelPayload);
 
                 if (balance > 0) {
                     const recordsCol = collection(db, 'artifacts', appId, 'public', 'data', 'records');
@@ -1736,7 +1807,7 @@
                     const rowBg = row.rowColor === 'warm'
                         ? 'background:rgba(226,196,120,0.32);'
                         : row.rowColor === 'cool'
-                        ? 'background:rgba(124,150,181,0.30);'
+                        ? 'background:rgba(154,168,150,0.32);'
                         : '';
                     tr.setAttribute('style', rowBg);
                     tr.className = `transition-all border-l-4 ${isToday ? 'bg-[#A08070]/15 border-[#A08070]' : 'border-transparent hover:bg-white/20 hover:border-[#A08070]/50'}`;
@@ -1749,9 +1820,9 @@
                         </td>
                         <td class="p-3.5 font-mono tracking-tight text-[#3E2F28]/80 select-all">${row.channelNo}</td>
                         <td class="p-3.5 font-mono tracking-tight text-[#3E2F28]/80 whitespace-nowrap select-all">${row.merchantNo}</td>
-                        <td class="p-3.5 text-right font-mono font-extrabold tabular-nums text-[0.81rem] ${rmbClass}">${row.rmb}</td>
-                        <td class="p-3.5 text-right font-mono font-extrabold tabular-nums text-[0.81rem] ${uClass}">${row.uQty}</td>
-                        <td class="p-3.5 text-right font-mono text-[0.81rem] text-[#3E2F28]/60">${row.rate}</td>
+                        <td class="p-3.5 text-right font-mono font-extrabold tabular-nums text-[0.86rem] ${rmbClass}">${row.rmb}</td>
+                        <td class="p-3.5 text-right font-mono font-extrabold tabular-nums text-[0.86rem] ${uClass}">${row.uQty}</td>
+                        <td class="p-3.5 text-right font-mono text-[0.86rem] text-[#3E2F28]/60">${row.rate}</td>
                         <td class="p-3.5 text-[#3E2F28]/80" style="font-family:'cwTeXYen','LXGW WenKai TC','Noto Serif TC',serif;font-size:0.78rem;letter-spacing:0.02em;">${row.remark || '-'}</td>
                         <td class="p-3.5 text-center">
                           <button onclick="vcotcDeleteRow('${row.id}')" class="p-1.5 rounded bg-red-50 text-red-500 hover:bg-red-100 transition border border-red-200" title="刪除">
