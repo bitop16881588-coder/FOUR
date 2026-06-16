@@ -333,6 +333,11 @@
                     <p class="text-xs text-[#3E2F28]/80 mt-1">獨立展示匯總的可用資產、四方通道餘額與交易明細檔案。</p>
                 </div>
                 <div class="flex items-center gap-2.5">
+                    <input type="file" id="vcotc-csv-input" accept=".csv,text/csv" class="hidden" onchange="handleVCOTC_CSVUpload(event)">
+                    <button onclick="document.getElementById('vcotc-csv-input').click()" class="bg-[#A08070] hover:bg-[#8a6c5b] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-sm border border-[#3E2F28] shrink-0 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"></path></svg>
+                        匯入 CSV
+                    </button>
                     <button onclick="openVcotcAddModal()" class="bg-[#3E2F28] hover:bg-[#A08070] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-sm border border-[#3E2F28] shrink-0 flex items-center gap-1.5">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path></svg>
                         新增明細
@@ -1775,6 +1780,14 @@
             }
         }
 
+        // 數字顯示：最多三位小數，末尾的 0 不顯示（938.000→938、141.240→141.24）
+        function vcotcTrimNum(v) {
+            if (v === null || v === undefined || v === '') return v == null ? '' : String(v);
+            const n = parseFloat(v);
+            if (isNaN(n)) return String(v);
+            return parseFloat(n.toFixed(3)).toString();
+        }
+
         function renderVCOTCData() {
             const rmbInput = document.getElementById('vcotc-rmb-input');
             const usdtInput = document.getElementById('vcotc-usdt-input');
@@ -1786,7 +1799,8 @@
             const emptyState = document.getElementById('vcotc-empty-state');
             if (!tbody) return;
             tbody.innerHTML = '';
-            const todayStr = new Date().toISOString().split('T')[0];
+            const _now = new Date();
+            const todayStr = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`;
 
             const sortedVcotc = [...vcotcData].sort((a, b) => {
                 const dateCmp = (b.date || '').localeCompare(a.date || '');
@@ -1802,7 +1816,7 @@
                     const isFee = row.rowColor === 'warm';
                     const rmbClass = (isFee || parseFloat(row.rmb) < 0) ? 'text-red-600' : 'text-[#3E2F28]';
                     const uClass = (isFee || parseFloat(row.uQty) < 0) ? 'text-red-600' : 'text-[#A08070] font-extrabold';
-                    const isToday = row.date === todayStr;
+                    const isToday = (row.date || '').slice(0, 10) === todayStr;
                     const tr = document.createElement('tr');
                     const rowBg = row.rowColor === 'warm'
                         ? 'background:rgba(226,196,120,0.32);'
@@ -1820,9 +1834,9 @@
                         </td>
                         <td class="p-3.5 font-mono tracking-tight text-[#3E2F28]/80 select-all">${row.channelNo}</td>
                         <td class="p-3.5 font-mono tracking-tight text-[#3E2F28]/80 whitespace-nowrap select-all">${row.merchantNo}</td>
-                        <td class="p-3.5 text-right font-mono font-extrabold tabular-nums text-[0.86rem] ${rmbClass}">${row.rmb}</td>
-                        <td class="p-3.5 text-right font-mono font-extrabold tabular-nums text-[0.86rem] ${uClass}">${row.uQty}</td>
-                        <td class="p-3.5 text-right font-mono text-[0.86rem] text-[#3E2F28]/60">${row.rate}</td>
+                        <td class="p-3.5 text-right font-mono font-extrabold tabular-nums text-[0.86rem] ${rmbClass}">${vcotcTrimNum(row.rmb)}</td>
+                        <td class="p-3.5 text-right font-mono font-extrabold tabular-nums text-[0.86rem] ${uClass}">${vcotcTrimNum(row.uQty)}</td>
+                        <td class="p-3.5 text-right font-mono text-[0.86rem] text-[#3E2F28]/60">${vcotcTrimNum(row.rate)}</td>
                         <td class="p-3.5 text-[#3E2F28]/80" style="font-family:'cwTeXYen','LXGW WenKai TC','Noto Serif TC',serif;font-size:0.78rem;letter-spacing:0.02em;">${row.remark || '-'}</td>
                         <td class="p-3.5 text-center">
                           <button onclick="vcotcDeleteRow('${row.id}')" class="p-1.5 rounded bg-red-50 text-red-500 hover:bg-red-100 transition border border-red-200" title="刪除">
@@ -1844,8 +1858,83 @@
 
             const reader = new FileReader();
             reader.onload = async function(e) {
-                const text = e.target.result;
-                const lines = text.split('\n').filter(line => line.trim() !== '');
+                // 去除 BOM、容忍 \r\n，過濾空行
+                const text = e.target.result.replace(/^\uFEFF/, '');
+                const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
+                if (lines.length === 0) { showToast('CSV 內容為空', 'error'); event.target.value=''; return; }
+
+                // 欄位清理：去掉夾帶的 Tab／\r 與前後空白
+                const cell = (s) => (s == null ? '' : String(s).replace(/[\t\r]/g, '').trim());
+                // 數字最多三位小數，末尾 0 不保留
+                const fmt = (v) => {
+                    const n = parseFloat(cell(v));
+                    return isNaN(n) ? cell(v) : parseFloat(n.toFixed(3)).toString();
+                };
+
+                const headerLine = lines[0];
+
+                // ===== 格式 A：四方後台存款匯出檔（英文表頭）=====
+                // VCOTC_orderID, orderID, create_date, channel, status, amount, usdt_amount, usdt_price
+                if (headerLine.includes('VCOTC_orderID') ||
+                    (headerLine.includes('orderID') && headerLine.includes('usdt_price'))) {
+
+                    const parsed = [];
+                    let sumRMB = 0, sumUSDT = 0;
+                    for (let i = 1; i < lines.length; i++) {
+                        const c = lines[i].split(',');
+                        const channelNo = cell(c[0]);           // VCOTC_orderID → 通道單號
+                        if (!channelNo) continue;
+                        sumRMB  += parseFloat(cell(c[5])) || 0;  // amount
+                        sumUSDT += parseFloat(cell(c[6])) || 0;  // usdt_amount
+                        parsed.push({
+                            date:       cell(c[2]).split(/[ T]/)[0], // create_date → 只取當天日期
+                            channelNo:  channelNo,
+                            merchantNo: cell(c[1]),              // orderID → 商戶單號
+                            rmb:        fmt(c[5]),               // amount → 人民幣
+                            uQty:       fmt(c[6]),               // usdt_amount → U數量
+                            rate:       fmt(c[7]),               // usdt_price → 匯率
+                            remark:     '',
+                            rowColor:   'none'
+                        });
+                    }
+
+                    if (parsed.length === 0) { showToast('未解析到任何明細資料', 'error'); event.target.value=''; return; }
+
+                    // 以「通道單號」去重，採累加（append）做帳，重覆匯入不會重複入帳
+                    const existingKeys = new Set(vcotcData.map(r => (r.channelNo || '').trim()));
+                    const toAdd = parsed.filter(r => !existingKeys.has(r.channelNo.trim()));
+                    const skipped = parsed.length - toAdd.length;
+
+                    if (toAdd.length === 0) {
+                        showToast(`這 ${parsed.length} 筆全部已存在，未重複入帳`, 'info');
+                        event.target.value = '';
+                        return;
+                    }
+                    // 僅計入「實際入帳」的列，重複略過者不重複加總
+                    const addedRMB  = toAdd.reduce((s, r) => s + (parseFloat(r.rmb)  || 0), 0);
+                    const addedUSDT = toAdd.reduce((s, r) => s + (parseFloat(r.uQty) || 0), 0);
+                    try {
+                        const { writeBatch, doc, setDoc } = window.fbFns;
+                        const batch = writeBatch(window.fbDb);
+                        const base = Date.now();
+                        toAdd.forEach((row, i) => batch.set(doc(vcotcCol()), { ...row, createdAt: base + i }));
+                        await batch.commit();
+                        // 自動把本批金額加進「四方通道餘額 / 可用資產」總計
+                        const newRMB  = Number((totalRMB  + addedRMB ).toFixed(3));
+                        const newUSDT = Number((totalUSDT + addedUSDT).toFixed(3));
+                        await setDoc(vcotcMetaDoc(), { totalRMB: newRMB, totalUSDT: newUSDT });
+                        let msg = `已入帳 ${toAdd.length} 筆（本批 RMB ${addedRMB.toFixed(2)} / USDT ${addedUSDT.toFixed(2)}，已加入總計）`;
+                        if (skipped > 0) msg += `，略過 ${skipped} 筆重複`;
+                        showToast(msg);
+                    } catch (err) {
+                        console.error("VCOTC CSV 匯入失敗:", err);
+                        showToast("匯入雲端失敗", "error");
+                    }
+                    event.target.value = '';
+                    return;
+                }
+
+                // ===== 格式 B：舊版含中文表頭＋餘額列（覆蓋式匯入，保留相容）=====
                 let isDataSection = false;
                 let newData = [];
                 let csvRMB = null, csvUSDT = null;
@@ -1864,13 +1953,13 @@
                     if (isDataSection && columns.length >= 5) {
                         if (!columns[1] || columns[1].trim() === '') continue;
                         newData.push({
-                            date: columns[0] ? columns[0].trim() : '',
-                            channelNo: columns[1] ? columns[1].trim() : '',
-                            merchantNo: columns[2] ? columns[2].trim() : '',
-                            rmb: columns[3] ? columns[3].trim() : '',
-                            uQty: columns[4] ? columns[4].trim() : '',
-                            rate: columns[5] ? columns[5].trim() : '',
-                            remark: columns[6] ? columns[6].trim() : '',
+                            date: cell(columns[0]),
+                            channelNo: cell(columns[1]),
+                            merchantNo: cell(columns[2]),
+                            rmb: cell(columns[3]),
+                            uQty: cell(columns[4]),
+                            rate: cell(columns[5]),
+                            remark: cell(columns[6]),
                             rowColor: 'none'
                         });
                     }
@@ -1897,7 +1986,7 @@
                         showToast("匯入雲端失敗", "error");
                     }
                 } else {
-                    showToast('CSV 格式解析失敗，未找到明細資料。', 'error');
+                    showToast('CSV 格式無法辨識，未找到明細資料。', 'error');
                 }
             };
             reader.readAsText(file);
