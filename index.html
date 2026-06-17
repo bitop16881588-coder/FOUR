@@ -1886,15 +1886,18 @@
                         if (!channelNo) continue;
                         sumRMB  += parseFloat(cell(c[5])) || 0;  // amount
                         sumUSDT += parseFloat(cell(c[6])) || 0;  // usdt_amount
+                        const _rawDate = cell(c[2]);
+                        const _ts = (() => { const t = Date.parse(_rawDate.replace(' ', 'T')); return isNaN(t) ? null : t; })();
                         parsed.push({
-                            date:       cell(c[2]).split(/[ T]/)[0], // create_date → 只取當天日期
+                            date:       _rawDate.split(/[ T]/)[0],  // create_date → 只取當天日期
                             channelNo:  channelNo,
                             merchantNo: cell(c[1]),              // orderID → 商戶單號
                             rmb:        fmt(c[5]),               // amount → 人民幣
                             uQty:       fmt(c[6]),               // usdt_amount → U數量
                             rate:       fmt(c[7]),               // usdt_price → 匯率
                             remark:     '',
-                            rowColor:   'none'
+                            rowColor:   'none',
+                            _ts:        _ts                      // 完整建立時間（毫秒），僅供排序，不寫入雲端
                         });
                     }
 
@@ -1917,7 +1920,14 @@
                         const { writeBatch, doc, setDoc } = window.fbFns;
                         const batch = writeBatch(window.fbDb);
                         const base = Date.now();
-                        toAdd.forEach((row, i) => batch.set(doc(vcotcCol()), { ...row, createdAt: base + i }));
+                        const N = toAdd.length;
+                        toAdd.forEach((row, i) => {
+                            const { _ts, ...clean } = row;
+                            // 以實際建立時間排序；同秒或無時間時，假設 CSV 由新到舊，
+                            // 讓靠前的列獲得較大的 createdAt → 最新的排在最上面
+                            const createdAt = (_ts != null) ? (_ts + (N - 1 - i)) : (base + (N - 1 - i));
+                            batch.set(doc(vcotcCol()), { ...clean, createdAt });
+                        });
                         await batch.commit();
                         // 自動把本批金額加進「四方通道餘額 / 可用資產」總計
                         const newRMB  = Number((totalRMB  + addedRMB ).toFixed(3));
@@ -1972,7 +1982,9 @@
                         // 先清空雲端現有明細，再批量寫入
                         vcotcData.forEach(r => batch.delete(doc(vcotcCol(), r.id)));
                         const base = Date.now();
-                        newData.forEach((row, i) => batch.set(doc(vcotcCol()), { ...row, createdAt: base + i }));
+                        const N = newData.length;
+                        // 假設 CSV 由新到舊，讓靠前的列獲得較大的 createdAt → 最新的排在最上面
+                        newData.forEach((row, i) => batch.set(doc(vcotcCol()), { ...row, createdAt: base + (N - 1 - i) }));
                         await batch.commit();
                         if (csvRMB !== null || csvUSDT !== null) {
                             await setDoc(vcotcMetaDoc(), {
