@@ -121,6 +121,101 @@
 </head>
 <body class="min-h-screen pb-16">
 
+    <!-- ===== 登入閘門（前端遮罩）===== -->
+    <div id="login-gate" class="fixed inset-0 z-[9999] flex items-center justify-center px-4"
+         style="background:#F5EFE8;">
+        <div class="glass-panel w-full max-w-sm rounded-[1.75rem] border-2 border-[#3E2F28]/15 p-8 shadow-xl animate-fade-in">
+            <div class="flex flex-col items-center mb-6">
+                <div class="w-14 h-14 rounded-2xl bg-[#3E2F28] flex items-center justify-center text-white font-bold text-2xl shadow-md mb-3">四</div>
+                <h2 class="text-lg font-bold text-[#3E2F28] tracking-tight">四方殘留暫存主控台</h2>
+                <p class="text-[11px] text-[#3E2F28]/60 font-semibold tracking-wider mt-1">SECURE ACCESS · 請先登入</p>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-[#3E2F28]/70 mb-1">帳號</label>
+                    <input id="login-account" type="text" autocomplete="username" placeholder="請輸入帳號"
+                        class="w-full bg-white/70 focus:bg-white text-sm px-3 py-2.5 rounded-xl border border-[#3E2F28]/20 outline-none focus:ring-2 focus:ring-[#A08070]/40 transition-all text-[#3E2F28] placeholder-[#3E2F28]/40">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-[#3E2F28]/70 mb-1">密碼</label>
+                    <input id="login-password" type="password" autocomplete="current-password" placeholder="請輸入密碼"
+                        class="w-full bg-white/70 focus:bg-white text-sm px-3 py-2.5 rounded-xl border border-[#3E2F28]/20 outline-none focus:ring-2 focus:ring-[#A08070]/40 transition-all text-[#3E2F28] placeholder-[#3E2F28]/40">
+                </div>
+                <p id="login-error" class="text-xs text-red-500 font-semibold h-4 px-1"></p>
+                <button id="login-submit"
+                    class="w-full bg-[#A08070] hover:bg-[#3E2F28] text-white font-bold text-sm py-2.5 rounded-xl border-2 border-[#3E2F28] shadow-[3px_3px_0px_#3E2F28] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#3E2F28] transition-all">
+                    登　入
+                </button>
+            </div>
+            <p class="text-[10px] text-[#3E2F28]/40 text-center mt-5 leading-relaxed">本登入為前端存取控管，僅供內部使用</p>
+        </div>
+    </div>
+
+    <script>
+    /* ===== 登入閘門邏輯 =====
+       ※ 帳號清單與「密碼的 SHA-256 雜湊」設定在下方 AUTH_USERS。
+       ※ 要改密碼：在瀏覽器 Console 執行下面這行取得新雜湊，再貼回 AUTH_USERS：
+          crypto.subtle.digest('SHA-256', new TextEncoder().encode('你的新密碼'))
+            .then(b => console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')));
+    */
+    (function () {
+        // 帳號 : 密碼的 SHA-256 雜湊（預設帳號 admin / 密碼 four2026）
+        const AUTH_USERS = {
+            "admin": "0c9229b0df3c09ef287fbcea493bbaf8b8b312ea45a9ba8b208c0e7424c8e607"
+        };
+        const SESSION_KEY = "four_authed_user";
+
+        const gate    = document.getElementById('login-gate');
+        const accEl    = document.getElementById('login-account');
+        const pwdEl    = document.getElementById('login-password');
+        const errEl    = document.getElementById('login-error');
+        const btnEl    = document.getElementById('login-submit');
+
+        // 已登入（本次工作階段）→ 直接放行
+        if (sessionStorage.getItem(SESSION_KEY)) {
+            gate.remove();
+            return;
+        }
+
+        // 鎖住背景捲動
+        document.body.style.overflow = 'hidden';
+
+        async function sha256Hex(str) {
+            const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+            return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function tryLogin() {
+            const acc = accEl.value.trim();
+            const pwd = pwdEl.value;
+            errEl.textContent = '';
+            if (!acc || !pwd) { errEl.textContent = '請輸入帳號與密碼'; return; }
+
+            const expected = AUTH_USERS[acc];
+            const hash = await sha256Hex(pwd);
+            if (expected && hash === expected) {
+                sessionStorage.setItem(SESSION_KEY, acc);
+                document.body.style.overflow = '';
+                gate.style.transition = 'opacity 0.25s ease';
+                gate.style.opacity = '0';
+                setTimeout(() => gate.remove(), 250);
+            } else {
+                errEl.textContent = '帳號或密碼錯誤';
+                pwdEl.value = '';
+                pwdEl.focus();
+            }
+        }
+
+        btnEl.addEventListener('click', tryLogin);
+        [accEl, pwdEl].forEach(el =>
+            el.addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); })
+        );
+        accEl.focus();
+    })();
+    </script>
+    <!-- ===== 登入閘門結束 ===== -->
+
     <nav class="max-w-7xl mx-auto px-4 pt-6 md:pt-8 mb-6">
         <div class="glass-panel px-6 py-4 rounded-[1.5rem] flex flex-wrap lg:flex-nowrap gap-4 justify-between items-center border-2 border-[#3E2F28]/10">
             
