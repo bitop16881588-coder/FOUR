@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>四方殘留暫存主控台 | 精緻雲端數據管理</title>
+    <title>四方來財葵花寶典 | 精緻雲端數據管理</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=cwTeXYen&display=swap" rel="stylesheet">
@@ -19,7 +19,7 @@
     </style>
     <style>
         :root {
-            /* 莫蘭迪綠調配色：精準對應 image_c4aa05.png */
+            /* 莫蘭迪綠調配色：精準對應精緻的大地美學 */
             --color-bg: #F5EFE8;             /* 溫潤米白大地背景 */
             --color-card-inactive: #FDFAF7;   /* 暖白米色 (未啟用卡片底色) */
             --color-card-active: #D4C4BA;     /* 玫瑰灰棕 (活躍卡片底色) */
@@ -42,19 +42,6 @@
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 250, 245, 0.65);
-        }
-
-        /* 靜態未啟用通道卡片 */
-        .glass-card-inactive {
-            background: rgba(253, 250, 247, 0.55) !important;
-            border: 1px solid rgba(160, 128, 112, 0.25) !important;
-            box-shadow: none !important;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .glass-card-inactive:hover {
-            background: rgba(253, 250, 247, 0.85) !important;
-            border-color: var(--color-brand) !important;
-            transform: translateY(-2px);
         }
 
         /* 活躍通道：粗邊框與深色實體硬陰影 */
@@ -93,6 +80,23 @@
             letter-spacing: -0.03em;
         }
 
+        /* 四方商戶帳密 / 第三方開關記錄：表格文字放大約 0.1rem */
+        #main-tab-notebook table,
+        #main-tab-switchlog table,
+        #main-tab-notebook th, #main-tab-notebook td,
+        #main-tab-switchlog th, #main-tab-switchlog td {
+            font-size: 0.86rem;
+        }
+        #main-tab-notebook td span,
+        #main-tab-switchlog td span {
+            font-size: 0.8rem;
+        }
+        /* 備註富文本：空白時顯示提示文字 */
+        .sl-rt:empty:before {
+            content: attr(data-placeholder);
+            color: rgba(62,47,40,0.4);
+        }
+
         /* 精緻滾動條 */
         ::-webkit-scrollbar {
             width: 6px;
@@ -121,13 +125,13 @@
 </head>
 <body class="min-h-screen pb-16">
 
-    <!-- ===== 登入閘門（前端遮罩）===== -->
+    <!-- ===== 登入閘門（前端安全控管）===== -->
     <div id="login-gate" class="fixed inset-0 z-[9999] flex items-center justify-center px-4"
          style="background:#F5EFE8;">
         <div class="glass-panel w-full max-w-sm rounded-[1.75rem] border-2 border-[#3E2F28]/15 p-8 shadow-xl animate-fade-in">
             <div class="flex flex-col items-center mb-6">
-                <div class="w-14 h-14 rounded-2xl bg-[#3E2F28] flex items-center justify-center text-white font-bold text-2xl shadow-md mb-3">四</div>
-                <h2 class="text-lg font-bold text-[#3E2F28] tracking-tight">四方殘留暫存主控台</h2>
+                <div class="w-14 h-14 rounded-2xl bg-[#3E2F28] flex items-center justify-center text-white font-bold text-3xl shadow-md mb-3">👑</div>
+                <h2 class="text-2xl font-bold text-[#3E2F28] tracking-tight">四方來財葵花寶典</h2>
                 <p class="text-[11px] text-[#3E2F28]/60 font-semibold tracking-wider mt-1">SECURE ACCESS · 請先登入</p>
             </div>
 
@@ -153,12 +157,6 @@
     </div>
 
     <script>
-    /* ===== 登入閘門邏輯 =====
-       ※ 帳號清單與「密碼的 SHA-256 雜湊」設定在下方 AUTH_USERS。
-       ※ 要改密碼：在瀏覽器 Console 執行下面這行取得新雜湊，再貼回 AUTH_USERS：
-          crypto.subtle.digest('SHA-256', new TextEncoder().encode('你的新密碼'))
-            .then(b => console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')));
-    */
     (function () {
         // 帳號 : 密碼的 SHA-256 雜湊（預設帳號 admin / 密碼 four2026）
         const AUTH_USERS = {
@@ -172,13 +170,11 @@
         const errEl    = document.getElementById('login-error');
         const btnEl    = document.getElementById('login-submit');
 
-        // 已登入（本次工作階段）→ 直接放行
         if (sessionStorage.getItem(SESSION_KEY)) {
             gate.remove();
             return;
         }
 
-        // 鎖住背景捲動
         document.body.style.overflow = 'hidden';
 
         async function sha256Hex(str) {
@@ -217,61 +213,28 @@
     <!-- ===== 登入閘門結束 ===== -->
 
     <nav class="max-w-7xl mx-auto px-4 pt-6 md:pt-8 mb-6">
-        <div class="glass-panel px-6 py-4 rounded-[1.5rem] flex flex-wrap lg:flex-nowrap gap-4 justify-between items-center border-2 border-[#3E2F28]/10">
+        <!-- 移除 glass-panel 與邊框，完美融入大地背景 -->
+        <div class="px-2 py-2 flex gap-4 justify-between items-center">
             
             <!-- Logo & 標題區 -->
             <div class="flex items-center gap-3 shrink-0">
-                <div class="w-10 h-10 rounded-xl bg-[#3E2F28] flex items-center justify-center text-white font-bold text-lg shadow-md">
-                    四
+                <div class="w-10 h-10 rounded-xl bg-[#3E2F28] flex items-center justify-center text-white font-bold text-xl shadow-md">
+                    👑
                 </div>
                 <div>
-                    <h1 class="text-base font-bold tracking-tight text-[#3E2F28]">四方殘留暫存主控台</h1>
-                    <p class="text-[10px] text-[#3E2F28]/75 font-semibold tracking-wider">MULTIPLE COLLABORATIVE AUDIT PANEL</p>
+                    <h1 class="text-2xl font-bold tracking-tight text-[#3E2F28]">四方來財葵花寶典</h1>
                 </div>
             </div>
 
-            <!-- 控制元件區 -->
-            <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-start lg:justify-end">
-                
-                <!-- 搜尋框 -->
-                <div class="relative w-full sm:w-44">
-                    <input type="text" id="search-input" placeholder="搜尋特定渠道..." class="w-full bg-white/60 focus:bg-white text-xs px-3 py-2 pl-8 rounded-xl border border-[#3E2F28]/20 outline-none focus:ring-2 focus:ring-[#A08070]/30 transition-all text-[#3E2F28] placeholder-[#3E2F28]/50">
-                    <span class="absolute left-2.5 top-3 text-xs text-[#3E2F28]/60">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                    </span>
-                </div>
-
-                <!-- 隱藏零餘額開關 -->
-                <div class="flex items-center gap-2.5 px-3 py-1.5 bg-white/30 rounded-xl border border-[#3E2F28]/10 shrink-0">
-                    <span class="text-xs font-semibold text-[#3E2F28] flex items-center gap-1">
-                        🚫 隱藏零餘額
-                    </span>
-                    <button id="toggle-zero" class="w-8 h-5 rounded-full bg-slate-300 p-0.5 transition-colors focus:outline-none relative">
-                        <div class="w-4 h-4 rounded-full bg-white shadow-md transform translate-x-0 transition-transform" id="toggle-ball"></div>
-                    </button>
-                </div>
-
-                <!-- 新增通道按鈕 -->
-                <button onclick="openAddChannelModal()" class="bg-[#3E2F28] hover:bg-[#A08070] text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow-sm flex items-center gap-1 shrink-0 border border-[#3E2F28]">
-                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
-                    </svg>
-                    新增通道
-                </button>
-
-                <!-- 雲端同步狀態標籤 -->
-                <div class="flex items-center gap-2 shrink-0 bg-[#EAE0D8] px-3 py-2 rounded-xl border border-[#A08070]/30">
-                    <span class="flex h-2 w-2 relative">
-                        <span id="cloud-status-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#A08070] opacity-75"></span>
-                        <span id="cloud-status-dot" class="relative inline-flex rounded-full h-2 w-2 bg-[#3E2F28]"></span>
-                    </span>
-                    <span id="cloud-status-text" class="text-[10px] font-bold text-[#3E2F28] whitespace-nowrap">
-                        雲端連線中...
-                    </span>
-                </div>
-
+            <!-- 雲端同步狀態標籤 -->
+            <div class="flex items-center gap-2 shrink-0 bg-[#EAE0D8] px-3 py-2 rounded-xl border border-[#A08070]/30 shadow-sm">
+                <span class="flex h-2 w-2 relative">
+                    <span id="cloud-status-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#A08070] opacity-75"></span>
+                    <span id="cloud-status-dot" class="relative inline-flex rounded-full h-2 w-2 bg-[#3E2F28]"></span>
+                </span>
+                <span id="cloud-status-text" class="text-[10px] font-bold text-[#3E2F28] whitespace-nowrap">
+                    雲端連線中...
+                </span>
             </div>
 
         </div>
@@ -280,6 +243,7 @@
     <!-- 主要工作區 -->
     <main class="max-w-7xl mx-auto px-4 space-y-6">
 
+        <!-- 分頁切換鈕 -->
         <div class="glass-panel p-1.5 rounded-2xl flex gap-1.5 overflow-x-auto border border-[#3E2F28]/10">
             <button onclick="switchMainTab('summary')" id="tab-btn-summary" class="whitespace-nowrap px-5 py-2 rounded-xl text-xs font-bold transition-all active-tab">
                 📊 殘留餘額總覽
@@ -289,7 +253,12 @@
             </button>
             <button onclick="switchMainTab('vcotc')" id="tab-btn-vcotc" class="whitespace-nowrap px-5 py-2 rounded-xl text-xs font-bold transition-all text-[#3E2F28] hover:bg-white/40 flex items-center gap-1.5">
                 🛡️ VCOTC 四方餘額
-                <span class="bg-[#A08070] text-white text-[9px] px-1.5 py-0.5 rounded font-extrabold animate-pulse">獨立</span>
+            </button>
+            <button onclick="switchMainTab('notebook')" id="tab-btn-notebook" class="whitespace-nowrap px-5 py-2 rounded-xl text-xs font-bold transition-all text-[#3E2F28] hover:bg-white/40 flex items-center gap-1.5">
+                📓 四方商戶帳密
+            </button>
+            <button onclick="switchMainTab('switchlog')" id="tab-btn-switchlog" class="whitespace-nowrap px-5 py-2 rounded-xl text-xs font-bold transition-all text-[#3E2F28] hover:bg-white/40 flex items-center gap-1.5">
+                🔀 第三方開關記錄
             </button>
         </div>
 
@@ -340,6 +309,43 @@
         <!-- 主Tab 1: 總覽卡片網格 -->
         <div id="main-tab-summary" class="space-y-6">
 
+            <!-- 融入背景的一體化篩選控制列 (無多餘外框) -->
+            <div class="flex flex-wrap items-center justify-between gap-3 -mt-3 -mb-2 py-0">
+                <div class="flex flex-wrap items-center gap-3 w-full justify-end">
+                    
+                    <!-- 1. 搜尋特定渠道 -->
+                    <div class="relative w-full sm:w-48">
+                        <input type="text" id="search-input" placeholder="搜尋特定渠道..." 
+                               class="w-full bg-white text-xs px-4 py-2.5 pl-9 rounded-full border border-[#3E2F28]/15 outline-none focus:ring-2 focus:ring-[#A08070]/30 transition-all text-[#3E2F28] placeholder-[#3E2F28]/40 shadow-sm">
+                        <span class="absolute left-3.5 top-3.5 text-xs text-[#3E2F28]/40">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </span>
+                    </div>
+
+                    <!-- 2. 隱藏零餘額 -->
+                    <div class="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-[#3E2F28]/15 shadow-sm shrink-0 select-none">
+                        <span class="text-xs font-bold text-[#3E2F28]/80 flex items-center gap-1">
+                            🚫 隱藏零餘額
+                        </span>
+                        <button id="toggle-zero" class="w-8 h-4.5 rounded-full bg-slate-200 p-0.5 transition-colors focus:outline-none relative">
+                            <div class="w-3.5 h-3.5 rounded-full bg-white shadow-md transform translate-x-0 transition-transform" id="toggle-ball"></div>
+                        </button>
+                    </div>
+
+                    <!-- 3. 新增通道 -->
+                    <button onclick="openAddChannelModal()" 
+                            class="bg-[#3E2F28] hover:bg-[#A08070] text-white text-xs font-extrabold px-5 py-2.5 rounded-full transition shadow-md flex items-center gap-1.5 shrink-0 border border-[#3E2F28]/20">
+                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
+                        </svg>
+                        新增通道
+                    </button>
+
+                </div>
+            </div>
+
             <!-- 內部通道 -->
             <div>
                 <div class="flex items-center justify-between mb-4 px-2">
@@ -379,6 +385,7 @@
             </div>
         </div>
 
+        <!-- 主Tab 2: 明細 -->
         <div id="main-tab-details" class="glass-panel p-6 rounded-[2rem] space-y-6 hidden border border-[#3E2F28]/15">
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <div>
@@ -494,6 +501,108 @@
                 </table>
                 <div id="vcotc-empty-state" class="hidden p-8 text-center text-[#3E2F28]/70 italic text-xs">
                     目前沒有資料，請點擊上方按鈕匯入 CSV 檔案。
+                </div>
+            </div>
+        </div>
+
+        <!-- 主Tab 4: 四方商戶帳密 (獨立配置資料庫，支援整行拖拽) -->
+        <div id="main-tab-notebook" class="glass-panel p-6 rounded-[2rem] space-y-6 hidden border border-[#3E2F28]/15 animate-fade-in">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-base font-bold text-[#3E2F28]">📓 四方商戶帳密管理</h3>
+                    <p class="text-xs text-[#3E2F28]/80 mt-1">
+                        獨立商戶參數管理：支援渠道類型（內/外部）篩選與多色莫蘭迪底色標記（支援滑鼠/觸控按行拖拽排序）。
+                    </p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <!-- 渠道類型篩選 -->
+                    <select id="notebook-filter-channel" onchange="filterNotebookEntries()" class="bg-white/80 text-xs font-bold px-3 py-2.5 rounded-xl border border-[#3E2F28]/20 outline-none text-[#3E2F28]">
+                        <option value="">全部渠道</option>
+                        <option value="內部">內部</option>
+                        <option value="外部">外部</option>
+                    </select>
+                    <!-- 快速關鍵字搜尋 -->
+                    <div class="relative w-40 sm:w-48">
+                        <input type="text" id="notebook-search" oninput="filterNotebookEntries()" placeholder="搜尋商戶、關鍵字..." class="w-full bg-white/80 text-xs px-3 py-2.5 pl-8 rounded-xl border border-[#3E2F28]/20 outline-none focus:ring-2 focus:ring-[#A08070]/30 transition-all text-[#3E2F28]">
+                        <span class="absolute left-2.5 top-3 text-xs text-[#3E2F28]/60">🔍</span>
+                    </div>
+                    <!-- 新增配置筆記按鈕 -->
+                    <button onclick="openAddNotebookModal()" class="bg-[#3E2F28] hover:bg-[#A08070] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-sm border border-[#3E2F28] flex items-center gap-1.5">
+                        ➕ 新增商戶帳密
+                    </button>
+                </div>
+            </div>
+
+            <!-- 配置明細列表 (獨立商戶帳密) -->
+            <div class="overflow-x-auto rounded-xl border border-[#3E2F28]/15 bg-white/20">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-white/60 text-[#3E2F28] font-bold border-b border-[#3E2F28]/15">
+                            <th class="p-3.5 text-center w-20">雙開</th>
+                            <th class="p-3.5">渠道類型</th>
+                            <th class="p-3.5">商戶名</th>
+                            <th class="p-3.5">通道名稱</th> 
+                            <th class="p-3.5">驗證關鍵字</th>
+                            <th class="p-3.5">子帳號</th>
+                            <th class="p-3.5">子帳密碼</th>
+                            <th class="p-3.5">登入網址</th>
+                            <th class="p-3.5 text-center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="notebook-table-body" class="divide-y divide-[#3E2F28]/10 text-[#3E2F28] font-medium">
+                        <!-- 動態載入參數筆記資料 -->
+                    </tbody>
+                </table>
+                <div id="notebook-empty-state" class="hidden p-10 text-center text-[#3E2F28]/70 italic text-xs">
+                    📝 尚無配置商戶帳密，請點擊右上角新增您的第一筆商戶引數。
+                </div>
+            </div>
+        </div>
+
+        <!-- 主Tab 5: 第三方開關記錄 (獨立記錄表，支援整行拖拽 + 雲端同步) -->
+        <div id="main-tab-switchlog" class="glass-panel p-6 rounded-[2rem] space-y-6 hidden border border-[#3E2F28]/15 animate-fade-in">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-base font-bold text-[#3E2F28]">🔀 第三方開關記錄</h3>
+                    <p class="text-xs text-[#3E2F28]/80 mt-1">
+                        記錄各商戶內外部通道狀態、放置金、下發限制與出款／下發情形（支援滑鼠／觸控按行拖拽排序，即時同步雲端）。
+                    </p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <!-- 快速關鍵字搜尋 -->
+                    <div class="relative w-40 sm:w-48">
+                        <input type="text" id="switchlog-search" oninput="renderSwitchlogData()" placeholder="搜尋商戶、備註..." class="w-full bg-white/80 text-xs px-3 py-2.5 pl-8 rounded-xl border border-[#3E2F28]/20 outline-none focus:ring-2 focus:ring-[#A08070]/30 transition-all text-[#3E2F28]">
+                        <span class="absolute left-2.5 top-3 text-xs text-[#3E2F28]/60">🔍</span>
+                    </div>
+                    <!-- 新增記錄按鈕 -->
+                    <button onclick="openAddSwitchlogModal()" class="bg-[#3E2F28] hover:bg-[#A08070] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-sm border border-[#3E2F28] flex items-center gap-1.5">
+                        ➕ 新增記錄
+                    </button>
+                </div>
+            </div>
+
+            <!-- 記錄列表 -->
+            <div class="overflow-x-auto rounded-xl border border-[#3E2F28]/15 bg-white/20">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-white text-[#3E2F28] font-bold border-b border-[#3E2F28]/15">
+                            <th class="p-3 text-center bg-white">商戶名稱</th>
+                            <th class="p-3 text-center bg-white">內部</th>
+                            <th class="p-3 text-center bg-white">外部</th>
+                            <th class="p-3 text-center bg-white">放置金</th>
+                            <th class="p-3 text-center bg-white">下發限制</th>
+                            <th class="px-1 py-3 text-center bg-white w-12">出款</th>
+                            <th class="px-1 py-3 text-center bg-white w-12">下發</th>
+                            <th class="px-4 py-3 bg-white min-w-[220px]">備註</th>
+                            <th class="p-3 text-center bg-white">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="switchlog-table-body" class="divide-y divide-[#3E2F28]/10 text-[#3E2F28] font-medium">
+                        <!-- 動態載入第三方開關記錄 -->
+                    </tbody>
+                </table>
+                <div id="switchlog-empty-state" class="hidden p-10 text-center text-[#3E2F28]/70 italic text-xs">
+                    📝 尚無第三方開關記錄，請點擊右上角「新增記錄」建立您的第一筆。
                 </div>
             </div>
         </div>
@@ -786,6 +895,362 @@
             </div>
         </div>
     </div>
+
+    <!-- 新增/修改 四方商戶帳密 Modal -->
+    <div id="notebook-add-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-panel p-6 rounded-[2.5rem] w-full max-w-md shadow-2xl relative border-2 border-[#3E2F28]" style="background:rgba(255,250,245,0.98);">
+            <button onclick="closeNotebookModal()" class="absolute top-5 right-5 text-[#3E2F28] hover:opacity-60 transition">✕</button>
+            
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-9 h-9 bg-[#3E2F28] text-white rounded-xl flex items-center justify-center text-lg">📓</div>
+                <div>
+                    <h3 id="notebook-modal-title" class="text-sm font-bold text-[#3E2F28]">新增四方商戶帳密</h3>
+                    <p class="text-[11px] text-[#3E2F28]/60">填寫商戶細項資訊，即時同步雲端</p>
+                </div>
+            </div>
+
+            <form id="notebook-form" onsubmit="handleNotebookSubmit(event)" class="space-y-4 text-xs">
+                <input type="hidden" id="notebook-entry-id">
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-[#3E2F28] mb-1">雙開狀態</label>
+                        <select id="nb-dual" class="w-full bg-white/70 focus:bg-white p-2.5 rounded-xl border border-[#3E2F28]/20 outline-none font-semibold">
+                            <option value="O">O (雙開)</option>
+                            <option value="X" selected>X (單開)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-[#3E2F28] mb-1">渠道類型</label>
+                        <select id="nb-channel" class="w-full bg-white/70 focus:bg-white p-2.5 rounded-xl border border-[#3E2F28]/20 outline-none font-semibold">
+                            <option value="內部">內部</option>
+                            <option value="外部">外部</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-[#3E2F28] mb-1">商戶名</label>
+                        <input type="text" id="nb-merchant" placeholder="如：新寶二層" class="w-full bg-white/70 focus:bg-white p-2.5 rounded-xl border border-[#3E2F28]/20 outline-none" required>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-[#3E2F28] mb-1">通道名稱</label>
+                        <input type="text" id="nb-channel-title" placeholder="如：JJ支付寶" class="w-full bg-white/70 focus:bg-white p-2.5 rounded-xl border border-[#3E2F28]/20 outline-none" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-[#3E2F28] mb-1">驗證關鍵字</label>
+                    <input type="text" id="nb-keyword" placeholder="如：驗證成功" class="w-full bg-white/70 focus:bg-white p-2.5 rounded-xl border border-[#3E2F28]/20 outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-[#3E2F28] mb-1">子帳號</label>
+                        <input type="text" id="nb-subaccount" placeholder="請輸入子帳號" class="w-full bg-white/70 focus:bg-white p-2.5 rounded-xl border border-[#3E2F28]/20 outline-none" required>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-[#3E2F28] mb-1">子帳密碼</label>
+                        <input type="text" id="nb-subpassword" placeholder="請輸入子帳密碼" class="w-full bg-white/70 focus:bg-white p-2.5 rounded-xl border border-[#3E2F28]/20 outline-none" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-[#3E2F28] mb-1">登入網址</label>
+                    <input type="url" id="nb-url" placeholder="https://..." class="w-full bg-white/70 focus:bg-white p-2.5 rounded-xl border border-[#3E2F28]/20 outline-none">
+                </div>
+
+                <!-- 底色選擇 (9 色經典莫蘭迪延伸色卡) -->
+                <div>
+                    <label class="block font-bold text-[#3E2F28] mb-2">列底色選擇（多色莫蘭迪管理）</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="nb-row-color" value="none" checked class="hidden peer">
+                            <div class="peer-checked:ring-2 peer-checked:ring-[#3E2F28] rounded-xl py-2 border border-[#3E2F28]/20 text-center text-[10px] font-bold text-[#3E2F28]/60 bg-white/50 transition">
+                                ⬜ 預設
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="nb-row-color" value="green" class="hidden peer">
+                            <div class="peer-checked:ring-2 peer-checked:ring-[#3E2F28] rounded-xl py-2 border border-[#3E2F28]/20 text-center text-[10px] font-bold transition" style="background:rgba(154,168,150,0.32);color:#3E2F28;">
+                                🟢 莫綠
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="nb-row-color" value="yellow" class="hidden peer">
+                            <div class="peer-checked:ring-2 peer-checked:ring-[#3E2F28] rounded-xl py-2 border border-[#3E2F28]/20 text-center text-[10px] font-bold transition" style="background:rgba(226,196,120,0.32);color:#3E2F28;">
+                                🟡 莫黃
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="nb-row-color" value="brown" class="hidden peer">
+                            <div class="peer-checked:ring-2 peer-checked:ring-[#3E2F28] rounded-xl py-2 border border-[#3E2F28]/20 text-center text-[10px] font-bold transition" style="background:rgba(196,160,142,0.32);color:#3E2F28;">
+                                🟤 莫棕
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="nb-row-color" value="blue" class="hidden peer">
+                            <div class="peer-checked:ring-2 peer-checked:ring-[#3E2F28] rounded-xl py-2 border border-[#3E2F28]/20 text-center text-[10px] font-bold transition" style="background:rgba(163,190,212,0.32);color:#3E2F28;">
+                                🔵 莫藍
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="nb-row-color" value="red" class="hidden peer">
+                            <div class="peer-checked:ring-2 peer-checked:ring-[#3E2F28] rounded-xl py-2 border border-[#3E2F28]/20 text-center text-[10px] font-bold transition" style="background:rgba(220,172,172,0.32);color:#3E2F28;">
+                                🔴 莫紅
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="nb-row-color" value="purple" class="hidden peer">
+                            <div class="peer-checked:ring-2 peer-checked:ring-[#3E2F28] rounded-xl py-2 border border-[#3E2F28]/20 text-center text-[10px] font-bold transition" style="background:rgba(186,172,220,0.32);color:#3E2F28;">
+                                🟣 莫紫
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="nb-row-color" value="orange" class="hidden peer">
+                            <div class="peer-checked:ring-2 peer-checked:ring-[#3E2F28] rounded-xl py-2 border border-[#3E2F28]/20 text-center text-[10px] font-bold transition" style="background:rgba(234,196,163,0.32);color:#3E2F28;">
+                                🟠 莫橘
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="nb-row-color" value="gray" class="hidden peer">
+                            <div class="peer-checked:ring-2 peer-checked:ring-[#3E2F28] rounded-xl py-2 border border-[#3E2F28]/20 text-center text-[10px] font-bold transition" style="background:rgba(110,110,110,0.55);color:#3E2F28;">
+                                ⚫ 莫灰
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeNotebookModal()" class="flex-1 bg-white/40 hover:bg-white/60 py-3 rounded-xl font-bold transition border border-[#3E2F28]/20">
+                        取消
+                    </button>
+                    <button type="submit" class="flex-1 bg-[#3E2F28] hover:bg-[#A08070] text-white py-3 rounded-xl font-bold transition shadow-md border border-[#3E2F28]">
+                        儲存並同步
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 刪除參數配置確認 Modal (Notebook) -->
+    <div id="notebook-delete-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-panel p-6 rounded-[2rem] w-full max-w-sm shadow-2xl relative text-center border-2 border-[#3E2F28]" style="background:rgba(255,250,245,0.98);">
+            <button onclick="closeDeleteNotebookModal()" class="absolute top-4 right-4 text-[#3E2F28] hover:opacity-60 transition">✕</button>
+            <div class="w-11 h-11 bg-red-100 text-red-700 rounded-full flex items-center justify-center mx-auto mb-3 border border-red-300">
+                ⚠️
+            </div>
+            <h3 class="text-base font-bold text-[#3E2F28] mb-1">確認刪除此帳密配置？</h3>
+            <p class="text-xs text-[#3E2F28]/80 mb-5 leading-relaxed">
+                確定要移除商戶 <span id="delete-nb-target" class="font-extrabold text-red-600"></span> 的帳密資料嗎？此動作無法復原。
+            </p>
+            <div class="flex gap-3 text-xs">
+                <button onclick="closeDeleteNotebookModal()" class="flex-1 bg-white/40 hover:bg-white/60 py-2.5 rounded-xl font-bold transition border border-[#3E2F28]/20">
+                    取消
+                </button>
+                <button onclick="executeDeleteNotebook()" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-bold transition shadow-md border border-red-700">
+                    確認刪除
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增/修改 第三方開關記錄 Modal -->
+    <div id="switchlog-add-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-panel p-6 rounded-[2.5rem] w-full max-w-md shadow-2xl relative border-2 border-[#3E2F28]" style="background:rgba(255,250,245,0.98);">
+            <button onclick="closeSwitchlogModal()" class="absolute top-5 right-5 text-[#3E2F28] hover:opacity-60 transition">✕</button>
+
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-9 h-9 bg-[#3E2F28] text-white rounded-xl flex items-center justify-center text-lg">🔀</div>
+                <div>
+                    <h3 id="switchlog-modal-title" class="text-sm font-bold text-[#3E2F28]">新增第三方開關記錄</h3>
+                    <p class="text-[11px] text-[#3E2F28]/60">填寫開關狀態與下發資訊，即時同步雲端</p>
+                </div>
+            </div>
+
+            <form id="switchlog-form" onsubmit="handleSwitchlogSubmit(event)" class="space-y-4 text-xs">
+                <input type="hidden" id="switchlog-entry-id">
+
+                <div>
+                    <label class="block font-bold text-[#3E2F28] mb-1">商戶名稱</label>
+                    <input type="text" id="sl-merchant" placeholder="如：新寶二層" class="w-full bg-white/70 focus:bg-white p-2.5 rounded-xl border border-[#3E2F28]/20 outline-none" required>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-[#3E2F28] mb-1">內部</label>
+                        <select id="sl-internal" class="w-full bg-white/70 focus:bg-white p-2.5 rounded-xl border border-[#3E2F28]/20 outline-none font-semibold">
+                            <option value="開啟">開啟</option>
+                            <option value="餘額過高">餘額過高</option>
+                            <option value="日切">日切</option>
+                            <option value="維護">維護</option>
+                            <option value="X" selected>X</option>
+                            <option value="停用">停用</option>
+                            <option value="額滿，充值關">額滿，充值關</option>
+                            <option value="額滿，充值沒關">額滿，充值沒關</option>
+                            <option value="等組長通知開啟">等組長通知開啟</option>
+                            <option value="代付不順">代付不順</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-[#3E2F28] mb-1">外部</label>
+                        <select id="sl-external" class="w-full bg-white/70 focus:bg-white p-2.5 rounded-xl border border-[#3E2F28]/20 outline-none font-semibold">
+                            <option value="開啟">開啟</option>
+                            <option value="餘額過高">餘額過高</option>
+                            <option value="日切">日切</option>
+                            <option value="維護">維護</option>
+                            <option value="X" selected>X</option>
+                            <option value="停用">停用</option>
+                            <option value="額滿，充值關">額滿，充值關</option>
+                            <option value="額滿，充值沒關">額滿，充值沒關</option>
+                            <option value="等組長通知開啟">等組長通知開啟</option>
+                            <option value="代付不順">代付不順</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-[#3E2F28] mb-1">放置金</label>
+                        <input type="text" id="sl-deposit" placeholder="如：10,000" class="w-full bg-white/70 focus:bg-white p-2.5 rounded-xl border border-[#3E2F28]/20 outline-none font-mono">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-[#3E2F28] mb-1">下發限制</label>
+                        <select id="sl-time" class="w-full bg-white/70 focus:bg-white p-2.5 rounded-xl border border-[#3E2F28]/20 outline-none font-semibold">
+                            <option value="" selected></option>
+                            <option value="❌">❌</option>
+                            <option value="清空 不用核對">清空 不用核對</option>
+                            <option value="下發單間需滿人民幣2A">下發單間需滿人民幣2A</option>
+                            <option value="下發單間需滿5000U">下發單間需滿5000U</option>
+                            <option value="下發單間需滿3000U">下發單間需滿3000U</option>
+                            <option value="下發單間需滿2000U">下發單間需滿2000U</option>
+                            <option value="下發單間需滿1500U">下發單間需滿1500U</option>
+                            <option value="下發單間需滿1000U">下發單間需滿1000U</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-[#3E2F28] mb-1">出款</label>
+                        <select id="sl-payout" class="w-full bg-white/70 focus:bg-white p-2.5 rounded-xl border border-[#3E2F28]/20 outline-none font-semibold">
+                            <option value="⭕️">⭕️</option>
+                            <option value="❌" selected>❌</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-[#3E2F28] mb-1">下發</label>
+                        <select id="sl-dispatch" class="w-full bg-white/70 focus:bg-white p-2.5 rounded-xl border border-[#3E2F28]/20 outline-none font-semibold">
+                            <option value="⭕️">⭕️</option>
+                            <option value="❌" selected>❌</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-[#3E2F28] mb-1">備註</label>
+                    <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
+                        <span class="text-[10px] text-[#3E2F28]/55">選取文字後上色：</span>
+                        <button type="button" onmousedown="event.preventDefault()" onclick="slRemarkColor('#dc2626')" class="w-6 h-6 rounded-md border border-[#3E2F28]/20 font-bold text-[11px]" style="color:#dc2626;" title="紅">A</button>
+                        <button type="button" onmousedown="event.preventDefault()" onclick="slRemarkColor('#ea580c')" class="w-6 h-6 rounded-md border border-[#3E2F28]/20 font-bold text-[11px]" style="color:#ea580c;" title="橘">A</button>
+                        <button type="button" onmousedown="event.preventDefault()" onclick="slRemarkColor('#16a34a')" class="w-6 h-6 rounded-md border border-[#3E2F28]/20 font-bold text-[11px]" style="color:#16a34a;" title="綠">A</button>
+                        <button type="button" onmousedown="event.preventDefault()" onclick="slRemarkColor('#2563eb')" class="w-6 h-6 rounded-md border border-[#3E2F28]/20 font-bold text-[11px]" style="color:#2563eb;" title="藍">A</button>
+                        <button type="button" onmousedown="event.preventDefault()" onclick="slRemarkColor('#9333ea')" class="w-6 h-6 rounded-md border border-[#3E2F28]/20 font-bold text-[11px]" style="color:#9333ea;" title="紫">A</button>
+                        <button type="button" onmousedown="event.preventDefault()" onclick="slRemarkColor('#3E2F28')" class="w-6 h-6 rounded-md border border-[#3E2F28]/20 font-bold text-[11px]" style="color:#3E2F28;" title="預設">A</button>
+                        <label class="w-6 h-6 rounded-md border border-[#3E2F28]/20 overflow-hidden cursor-pointer relative" title="自選顏色">
+                            <span class="absolute inset-0 flex items-center justify-center text-[11px] font-bold pointer-events-none">🎨</span>
+                            <input type="color" onmousedown="event.preventDefault()" oninput="slRemarkColor(this.value)" class="opacity-0 w-full h-full cursor-pointer">
+                        </label>
+                        <button type="button" onmousedown="event.preventDefault()" onclick="slRemarkBold()" class="w-6 h-6 rounded-md border border-[#3E2F28]/20 font-extrabold text-[11px] text-[#3E2F28]" title="粗體">B</button>
+                    </div>
+                    <div id="sl-remark" contenteditable="true" data-placeholder="補充說明（選填，可選字上色）" class="sl-rt w-full bg-white/70 focus:bg-white p-2.5 rounded-xl border border-[#3E2F28]/20 outline-none min-h-[60px] text-xs leading-relaxed text-[#3E2F28]"></div>
+                </div>
+
+                <!-- 列底色選擇：自選任意顏色 + 莫蘭迪快選 -->
+                <div>
+                    <label class="block font-bold text-[#3E2F28] mb-2">列底色選擇</label>
+                    <input type="hidden" id="sl-row-color" value="none">
+                    <div class="flex items-center gap-2 mb-2">
+                        <input type="color" id="sl-color-input" value="#9aa896" oninput="pickSlColor(this.value)" class="w-11 h-9 rounded-lg border border-[#3E2F28]/20 bg-white cursor-pointer p-0.5">
+                        <span class="text-[11px] text-[#3E2F28]/70 font-semibold">自選任意顏色</span>
+                        <span id="sl-color-preview" class="ml-auto text-[10px] font-bold px-2.5 py-1 rounded-md border border-[#3E2F28]/15 text-[#3E2F28]/60">無底色</span>
+                        <button type="button" onclick="clearSlColor()" class="text-[11px] font-bold px-3 py-1.5 rounded-lg border border-[#3E2F28]/20 bg-white/60 hover:bg-white transition">清除</button>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button type="button" onclick="pickSlColor('#9aa896')" class="rounded-xl py-1.5 border border-[#3E2F28]/20 text-[10px] font-bold transition hover:ring-2 hover:ring-[#3E2F28]/40" style="background:rgba(154,168,150,0.32);color:#3E2F28;">莫綠</button>
+                        <button type="button" onclick="pickSlColor('#e2c478')" class="rounded-xl py-1.5 border border-[#3E2F28]/20 text-[10px] font-bold transition hover:ring-2 hover:ring-[#3E2F28]/40" style="background:rgba(226,196,120,0.32);color:#3E2F28;">莫黃</button>
+                        <button type="button" onclick="pickSlColor('#c4a08e')" class="rounded-xl py-1.5 border border-[#3E2F28]/20 text-[10px] font-bold transition hover:ring-2 hover:ring-[#3E2F28]/40" style="background:rgba(196,160,142,0.32);color:#3E2F28;">莫棕</button>
+                        <button type="button" onclick="pickSlColor('#a3bed4')" class="rounded-xl py-1.5 border border-[#3E2F28]/20 text-[10px] font-bold transition hover:ring-2 hover:ring-[#3E2F28]/40" style="background:rgba(163,190,212,0.32);color:#3E2F28;">莫藍</button>
+                        <button type="button" onclick="pickSlColor('#dcacac')" class="rounded-xl py-1.5 border border-[#3E2F28]/20 text-[10px] font-bold transition hover:ring-2 hover:ring-[#3E2F28]/40" style="background:rgba(220,172,172,0.32);color:#3E2F28;">莫紅</button>
+                        <button type="button" onclick="pickSlColor('#baacdc')" class="rounded-xl py-1.5 border border-[#3E2F28]/20 text-[10px] font-bold transition hover:ring-2 hover:ring-[#3E2F28]/40" style="background:rgba(186,172,220,0.32);color:#3E2F28;">莫紫</button>
+                        <button type="button" onclick="pickSlColor('#eac4a3')" class="rounded-xl py-1.5 border border-[#3E2F28]/20 text-[10px] font-bold transition hover:ring-2 hover:ring-[#3E2F28]/40" style="background:rgba(234,196,163,0.32);color:#3E2F28;">莫橘</button>
+                        <button type="button" onclick="pickSlColor('#6e6e6e')" class="rounded-xl py-1.5 border border-[#3E2F28]/20 text-[10px] font-bold transition hover:ring-2 hover:ring-[#3E2F28]/40" style="background:rgba(110,110,110,0.42);color:#3E2F28;">莫灰</button>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeSwitchlogModal()" class="flex-1 bg-white/40 hover:bg-white/60 py-3 rounded-xl font-bold transition border border-[#3E2F28]/20">
+                        取消
+                    </button>
+                    <button type="submit" class="flex-1 bg-[#3E2F28] hover:bg-[#A08070] text-white py-3 rounded-xl font-bold transition shadow-md">
+                        確認儲存
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 刪除第三方開關記錄確認 Modal -->
+    <div id="switchlog-delete-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-panel p-6 rounded-[2rem] w-full max-w-sm shadow-2xl relative text-center border-2 border-[#3E2F28]" style="background:rgba(255,250,245,0.98);">
+            <button onclick="closeDeleteSwitchlogModal()" class="absolute top-4 right-4 text-[#3E2F28] hover:opacity-60 transition">✕</button>
+            <div class="w-11 h-11 bg-red-100 text-red-700 rounded-full flex items-center justify-center mx-auto mb-3 border border-red-300">
+                ⚠️
+            </div>
+            <h3 class="text-base font-bold text-[#3E2F28] mb-1">確認刪除此筆記錄？</h3>
+            <p class="text-xs text-[#3E2F28]/80 mb-5 leading-relaxed">
+                確定要移除商戶 <span id="delete-sl-target" class="font-extrabold text-red-600"></span> 的開關記錄嗎？此動作無法復原。
+            </p>
+            <div class="flex gap-3 text-xs">
+                <button onclick="closeDeleteSwitchlogModal()" class="flex-1 bg-white/40 hover:bg-white/60 py-2.5 rounded-xl font-bold transition border border-[#3E2F28]/20">
+                    取消
+                </button>
+                <button onclick="executeDeleteSwitchlog()" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-bold transition shadow-md border border-red-700">
+                    確認刪除
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 第三方開關記錄：點列跳出的額外浮窗（便利貼備忘，可編輯文字） -->
+    <div id="switchlog-note-popup" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="closeSwitchlogNote()"></div>
+        <div class="relative w-full max-w-sm rounded-[1.75rem] shadow-2xl border-2 border-[#3E2F28] overflow-hidden" style="background:#fffdf5;">
+            <div class="flex items-center justify-between px-5 py-3 border-b border-[#3E2F28]/15" style="background:#fff7d6;">
+                <div class="flex items-center gap-2">
+                    <span class="text-lg">📝</span>
+                    <div>
+                        <h3 class="text-sm font-bold text-[#3E2F28]">備忘浮窗</h3>
+                        <p class="text-[11px] text-[#3E2F28]/60" id="sl-note-merchant">—</p>
+                    </div>
+                </div>
+                <button onclick="closeSwitchlogNote()" class="text-[#3E2F28] hover:opacity-60 transition text-lg">✕</button>
+            </div>
+            <div class="p-5">
+                <input type="hidden" id="sl-note-id">
+                <textarea id="sl-note-text" rows="7" placeholder="在這裡隨手記錄這筆商戶的備忘、待辦或臨時提醒…" class="w-full bg-white/80 focus:bg-white p-3 rounded-2xl border border-[#3E2F28]/20 outline-none focus:ring-2 focus:ring-[#A08070]/30 resize-none text-xs leading-relaxed text-[#3E2F28]"></textarea>
+                <div class="flex gap-3 pt-4 text-xs">
+                    <button onclick="closeSwitchlogNote()" class="flex-1 bg-white/40 hover:bg-white/60 py-2.5 rounded-xl font-bold transition border border-[#3E2F28]/20">關閉</button>
+                    <button onclick="saveSwitchlogNote()" class="flex-1 bg-[#3E2F28] hover:bg-[#A08070] text-white py-2.5 rounded-xl font-bold transition shadow-md">儲存備忘</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 備忘 hover 即時預覽浮框（滑鼠移到 📝 時顯示內容） -->
+    <div id="sl-note-tooltip" class="hidden fixed z-[60] max-w-xs px-3 py-2 rounded-xl shadow-xl border border-[#3E2F28]/20 text-xs text-[#3E2F28] whitespace-pre-wrap break-words leading-relaxed pointer-events-none" style="background:#fffdf5;"></div>
+
     <!-- 即時提示框 -->
     <div id="toast" class="fixed bottom-6 right-6 bg-[#3E2F28] text-white text-xs font-bold py-3 px-5 rounded-2xl shadow-xl transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-2 border border-[#A08070]/30">
         <span id="toast-msg">操作成功</span>
@@ -797,6 +1262,7 @@
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, addDoc, updateDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // 全域元件暴露
         window.switchMainTab = switchMainTab;
         window.loadDetailSheet = loadDetailSheet;
         window.openAddDetailModal = openAddDetailModal;
@@ -818,7 +1284,6 @@
         window.closeEditChannelModal = closeEditChannelModal;
         window.executeEditChannel = executeEditChannel;
 
-
         window.openVcotcAddModal = openVcotcAddModal;
         window.closeVcotcAddModal = closeVcotcAddModal;
         window.submitVcotcAdd = submitVcotcAdd;
@@ -827,6 +1292,22 @@
         window.handleDragOver = handleDragOver;
         window.handleDrop = handleDrop;
         window.handleDragEnd = handleDragEnd;
+
+        // 參數配置（Notebook）模組全域暴露與拖曳事件
+        window.openAddNotebookModal = openAddNotebookModal;
+        window.openEditNotebookModal = openEditNotebookModal;
+        window.closeNotebookModal = closeNotebookModal;
+        window.handleNotebookSubmit = handleNotebookSubmit;
+        window.triggerDeleteNotebook = triggerDeleteNotebook;
+        window.closeDeleteNotebookModal = closeDeleteNotebookModal;
+        window.executeDeleteNotebook = executeDeleteNotebook;
+        window.filterNotebookEntries = filterNotebookEntries;
+        window.copyTextVal = copyTextVal;
+        
+        window.handleNotebookDragStart = handleNotebookDragStart;
+        window.handleNotebookDragOver = handleNotebookDragOver;
+        window.handleNotebookDrop = handleNotebookDrop;
+        window.handleNotebookDragEnd = handleNotebookDragEnd;
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'four-pay-residual-audit-pro';
         
@@ -851,17 +1332,19 @@
         let user = null;
         let channelsList = [];
         let recordsList = [];
+        let notebookList = []; // 參數配置筆記
+        let switchlogList = []; // 第三方開關記錄
 
         let filterZero = false; 
         let searchQuery = "";
         let currentSelectedChannelId = ""; 
         let draggedId = null;
+        let draggedNotebookId = null; // 記錄被拖曳商戶行的 ID
         let sortOrderMap = {}; // { channelId: sortIndex } 記憶拖拽後的排序
 
         /* ===== 圖示對照與卡片顏色工具 ===== */
         const DEFAULT_CARD_HEX = '#D4C4BA'; // 未設自訂色時的預設卡片底色（奶茶玫瑰灰棕）
 
-        // 內建圖示對照（依名稱）；使用者自訂圖示優先於此
         const ICON_MAP = {
             "jj卡轉卡":"💳","jj支付寶":"🐼","jj微信":"🟢","jj數位人民幣":"🏦",
             "和奕支付寶":"🦊","和奕代收":"🤲","新寶支付寶":"💠","新寶支付寶(小額)":"🔹",
@@ -869,7 +1352,6 @@
             "全通支付寶":"🌐","碼上支付寶(新人層)":"🚀","碼上純代收":"📥","碼上小額卡卡":"📲",
             "gosm支付寶":"🎯","gosm微信":"📡","zcpay支付寶":"💸","樂支付寶":"🎵","wf支付寶":"🌊",
         };
-        // 自動圖示（未自訂時）：iconMap → 資料內建 icon → 預設
         function resolveAutoIcon(nameKey, dataIcon) {
             return ICON_MAP[nameKey] || dataIcon || "🔌";
         }
@@ -880,7 +1362,6 @@
             if (isNaN(n)) return '212,196,186';
             return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
         }
-        /* ===== 工具區塊結束 ===== */
 
         const initAuth = async () => {
             try {
@@ -906,11 +1387,16 @@
                 
                 setupFirestoreListeners();
 
-                // 將 Firestore 控制權暴露給普通 <script> 區塊內的 VCOTC 模組
                 window.fbDb = db;
                 window.fbAppId = appId;
-                window.fbFns = { collection, doc, setDoc, getDoc, onSnapshot, addDoc, deleteDoc, writeBatch };
+                window.fbFns = { collection, doc, setDoc, getDoc, onSnapshot, addDoc, updateDoc, deleteDoc, writeBatch };
                 if (typeof window.startVcotcCloud === 'function') window.startVcotcCloud();
+                
+                // 啟動參數配置筆記（Notebook）雲端監聽
+                setupNotebookListener();
+
+                // 啟動第三方開關記錄雲端監聽
+                setupSwitchlogListener();
             } else {
                 document.getElementById('cloud-status-text').innerText = "未取得雲端驗證";
                 document.getElementById('cloud-status-dot').className = "relative inline-flex rounded-full h-2 w-2 bg-red-400";
@@ -937,7 +1423,6 @@
                     return;
                 }
 
-                // 從 Firestore 載入已儲存的排序資料到 sortOrderMap
                 channelsList.forEach(ch => {
                     if (typeof ch.sortOrder === 'number') {
                         sortOrderMap[ch.id] = ch.sortOrder;
@@ -965,6 +1450,94 @@
             }, (err) => {
                 console.error("明細監聽異常:", err);
             });
+        }
+
+        let notebookSeeded = false;
+        async function setupNotebookListener() {
+            const notebookCol = collection(db, 'artifacts', appId, 'public', 'data', 'notebook_entries');
+            const metaDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'notebook_meta', 'init');
+
+            onSnapshot(notebookCol, async (snapshot) => {
+                notebookList = [];
+                snapshot.forEach(doc => {
+                    notebookList.push({ id: doc.id, ...doc.data() });
+                });
+
+                if (snapshot.size === 0 && !notebookSeeded) {
+                    notebookSeeded = true; 
+                    try {
+                        const metaSnap = await getDoc(metaDocRef);
+                        if (!metaSnap.exists()) {
+                            await seedInitialNotebookData();
+                            await setDoc(metaDocRef, { initialized: true });
+                        }
+                    } catch (err) {
+                        console.error("檢查初始化標籤失敗:", err);
+                    }
+                }
+                renderNotebookData();
+            }, (err) => {
+                console.error("配置筆記監聽異常:", err);
+            });
+        }
+
+        // 建立初始帳密預設資料 (加入 sortOrder 避免隨機排序)
+        async function seedInitialNotebookData() {
+            const batch = writeBatch(db);
+            const defaultEntries = [
+                { dual: "O", merchant: "和奕商戶", channelTitle: "和奕代收", channelName: "內部", keyword: "驗證成功", subAccount: "sub_heyi_01", subPassword: "password123", loginUrl: "https://heyi.pay.com/login", rowColor: "green", sortOrder: 0, createdAt: Date.now() },
+                { dual: "X", merchant: "新寶二層", channelTitle: "新寶支付寶", channelName: "外部", keyword: "代收對賬完成", subAccount: "sub_xinbao_99", subPassword: "secpass_xinbao", loginUrl: "https://xinbao.secure-login.net", rowColor: "blue", sortOrder: 1, createdAt: Date.now() + 10 }
+            ];
+            defaultEntries.forEach(entry => {
+                const docRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'notebook_entries'));
+                batch.set(docRef, entry);
+            });
+            await batch.commit();
+        }
+
+        // ==========================================
+        // 第三方開關記錄 雲端監聽與初始化
+        // ==========================================
+        let switchlogSeeded = false;
+        async function setupSwitchlogListener() {
+            const switchlogCol = collection(db, 'artifacts', appId, 'public', 'data', 'switchlog_entries');
+            const metaDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'switchlog_meta', 'init');
+
+            onSnapshot(switchlogCol, async (snapshot) => {
+                switchlogList = [];
+                snapshot.forEach(d => {
+                    switchlogList.push({ id: d.id, ...d.data() });
+                });
+
+                if (snapshot.size === 0 && !switchlogSeeded) {
+                    switchlogSeeded = true;
+                    try {
+                        const metaSnap = await getDoc(metaDocRef);
+                        if (!metaSnap.exists()) {
+                            await seedInitialSwitchlogData();
+                            await setDoc(metaDocRef, { initialized: true });
+                        }
+                    } catch (err) {
+                        console.error("開關記錄初始化標籤失敗:", err);
+                    }
+                }
+                renderSwitchlogData();
+            }, (err) => {
+                console.error("第三方開關記錄監聽異常:", err);
+            });
+        }
+
+        async function seedInitialSwitchlogData() {
+            const batch = writeBatch(db);
+            const defaultEntries = [
+                { merchant: "新寶二層", internal: "日切", external: "X", deposit: "10,000", time: "下發單間需滿5000U", payout: "⭕️", dispatch: "⭕️", remark: "", rowColor: "none", sortOrder: 0, createdAt: Date.now() },
+                { merchant: "和奕商戶", internal: "X", external: "額滿，充值關", deposit: "5,000", time: "下發單間需滿3000U", payout: "❌", dispatch: "⭕️", remark: "", rowColor: "none", sortOrder: 1, createdAt: Date.now() + 10 }
+            ];
+            defaultEntries.forEach(entry => {
+                const docRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'switchlog_entries'));
+                batch.set(docRef, entry);
+            });
+            await batch.commit();
         }
 
         function normalizeName(str) {
@@ -1002,7 +1575,6 @@
             let internalList = channelsList.filter(c => c.type === 'internal');
             let externalList = channelsList.filter(c => c.type === 'external');
 
-            // 若 sortOrderMap 有記錄該類型的排序，優先套用；否則使用預設靜態排序
             const hasInternalSort = internalList.some(c => sortOrderMap[c.id] !== undefined);
             const hasExternalSort = externalList.some(c => sortOrderMap[c.id] !== undefined);
 
@@ -1037,7 +1609,7 @@
               { name: "JJ卡轉卡", type: "internal", icon: "💳", fee: "3.00%", initialBalance: 2406.00 },
               { name: "JJ支付寶", type: "internal", icon: "📱", fee: "3.50%", initialBalance: 1422.00 },
               { name: "JJ微信", type: "internal", icon: "💬", fee: "5.80%", initialBalance: 399.00 },
-              { name: "JJ數位人民幣", type: "internal", icon: "🧧", fee: "2.20%", initialBalance: 0.00 },
+              { name: "JJ數位人民幣", type: "internal", icon: "🏦", fee: "2.20%", initialBalance: 0.00 },
               { name: "和奕代收", type: "internal", icon: "🤝", fee: "2.80%", initialBalance: 0.00 },
               { name: "和奕支付寶", type: "internal", icon: "🛸", fee: "2.60%", initialBalance: 6007.00 },
               { name: "新寶支付寶", type: "internal", icon: "💎", fee: "3.20%", initialBalance: 1503.00 },
@@ -1074,7 +1646,7 @@
             });
 
             await batch.commit();
-            showToast("雲端安全初始化帳目已成功加載！");
+            showToast("雲端安全實時初始化完成！");
         }
 
         function formatMoney(num) {
@@ -1094,8 +1666,8 @@
             const internalContainer = document.getElementById('internal-list');
             const externalContainer = document.getElementById('external-list');
             
-            internalContainer.innerHTML = "";
-            externalContainer.innerHTML = "";
+            if (internalContainer) internalContainer.innerHTML = "";
+            if (externalContainer) externalContainer.innerHTML = "";
 
             let visibleInternalCount = 0;
             let visibleExternalCount = 0;
@@ -1107,15 +1679,17 @@
                 const cardDOM = createChannelCard(item);
                 if (item.type === 'internal') {
                     visibleInternalCount++;
-                    internalContainer.appendChild(cardDOM);
+                    if (internalContainer) internalContainer.appendChild(cardDOM);
                 } else {
                     visibleExternalCount++;
-                    externalContainer.appendChild(cardDOM);
+                    if (externalContainer) externalContainer.appendChild(cardDOM);
                 }
             });
 
-            document.getElementById('internal-count').innerText = `共 ${visibleInternalCount} 個非零通道`;
-            document.getElementById('external-count').innerText = `共 ${visibleExternalCount} 個非零通道`;
+            const intCountEl = document.getElementById('internal-count');
+            const extCountEl = document.getElementById('external-count');
+            if (intCountEl) intCountEl.innerText = `共 ${visibleInternalCount} 個非零通道`;
+            if (extCountEl) extCountEl.innerText = `共 ${visibleExternalCount} 個非零通道`;
 
             if (currentSelectedChannelId) {
                 loadDetailSheet(currentSelectedChannelId);
@@ -1148,7 +1722,6 @@
                     channelsList.splice(draggedIdx, 1);
                     channelsList.splice(targetIdx, 0, draggedCh);
 
-                    // 更新 sortOrderMap（勿觸發 Firestore 更新再覆蓋）
                     const sameType = channelsList.filter(c => c.type === draggedCh.type);
                     sameType.forEach((ch, idx) => {
                         sortOrderMap[ch.id] = idx;
@@ -1156,7 +1729,6 @@
 
                     recalculateAndRender();
 
-                    // 持久化儲存排序到 Firestore
                     try {
                         const batch = writeBatch(db);
                         sameType.forEach((ch, idx) => {
@@ -1178,6 +1750,59 @@
             draggedId = null;
         }
 
+        /* ===== 商戶帳密拖曳排序事件核心邏輯 ===== */
+        function handleNotebookDragStart(e, id) {
+            draggedNotebookId = id;
+            e.dataTransfer.effectAllowed = "move";
+            e.currentTarget.classList.add('opacity-40');
+        }
+
+        function handleNotebookDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "move";
+        }
+
+        async function handleNotebookDrop(e, targetId) {
+            e.preventDefault();
+            if (draggedNotebookId === targetId) return;
+
+            const draggedIdx = notebookList.findIndex(item => item.id === draggedNotebookId);
+            const targetIdx = notebookList.findIndex(item => item.id === targetId);
+
+            if (draggedIdx !== -1 && targetIdx !== -1) {
+                const draggedItem = notebookList[draggedIdx];
+                
+                // 本地重新排序
+                notebookList.splice(draggedIdx, 1);
+                notebookList.splice(targetIdx, 0, draggedItem);
+
+                // 重設排序欄位
+                notebookList.forEach((item, idx) => {
+                    item.sortOrder = idx;
+                });
+
+                renderNotebookData();
+
+                try {
+                    const batch = writeBatch(db);
+                    notebookList.forEach((item, idx) => {
+                        const ref = doc(db, 'artifacts', appId, 'public', 'data', 'notebook_entries', item.id);
+                        batch.update(ref, { sortOrder: idx });
+                    });
+                    await batch.commit();
+                    showToast("商戶密碼排列順序已儲存至雲端！");
+                } catch (err) {
+                    console.error("儲存商戶排序失敗:", err);
+                    showToast("排序已更新（本地），雲端同步失敗", "error");
+                }
+            }
+        }
+
+        function handleNotebookDragEnd(e) {
+            e.currentTarget.classList.remove('opacity-40');
+            draggedNotebookId = null;
+        }
+
         function createChannelCard(item) {
             const card = document.createElement('div');
             card.setAttribute('data-id', item.id);
@@ -1189,9 +1814,6 @@
             card.addEventListener('dragend', handleDragEnd);
 
             const isSelected = (currentSelectedChannelId === item.id);
-            const isCardActive = item.amount > 0;
-            
-            // 不再區分有無餘額：全部使用實底樣式（深框硬陰影）
             let cardStyleClass = "glass-card-active";
 
             if (isSelected) {
@@ -1210,19 +1832,15 @@
                 showToast(`已載入 ${item.name} 的交易對賬明細`);
             };
 
-            // 圖示：使用全域 ICON_MAP
             const nameKey = item.name.toLowerCase()
                 .replace(/\s+/g,'')
                 .replace(/（/g,'(').replace(/）/g,')');
-            // 圖示優先序：使用者自訂 → iconMap → 資料內建 icon → 預設
             let matchedIcon = item.userIcon || resolveAutoIcon(nameKey, item.icon);
 
-            // 底色：有自訂色才覆寫，否則用預設奶茶色實底
             const cardHex = item.color || DEFAULT_CARD_HEX;
             card.style.setProperty('background', `rgba(${hexToRgb(cardHex)},0.82)`, 'important');
 
             card.innerHTML = `
-                <!-- 左側：圖標與名稱 (盡量單行，太長折行) -->
                 <div class="flex items-center gap-3 flex-1 min-w-0 pointer-events-none" style="align-items:center;">
                   <span class="w-10 h-10 rounded-xl bg-white/70 flex items-center justify-center shrink-0 shadow-sm text-xl">${matchedIcon}</span>
                   <div class="flex-1 min-w-0 pr-1">
@@ -1230,12 +1848,10 @@
                   </div>
                 </div>
                 
-                <!-- 右側：金額（Hover時向左漸隱平移） -->
                 <div class="flex items-center shrink-0 pointer-events-none transition-all duration-300 group-hover:opacity-10 group-hover:-translate-x-4">
                   <p class="font-bold text-xs sm:text-[1rem] text-[#3E2F28] font-mono tabular-nums text-right">${formatMoney(item.amount)}</p>
                 </div>
 
-                <!-- 絕對定位操作浮現按鈕 -->
                 <div class="absolute right-3 top-1/2 -translate-y-1/2 flex flex-row gap-1 justify-center opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-300">
                     <button onclick="triggerEditChannel(event, '${item.id}', '${item.name}')" 
                             class="p-1.5 rounded-lg text-[#3E2F28] hover:bg-white/60 bg-white shadow-sm border border-[#A08070]/30 transition-all hover:scale-110" 
@@ -1264,11 +1880,9 @@
             const nk = (ch.name || '').toLowerCase().replace(/\s+/g,'').replace(/（/g,'(').replace(/）/g,')');
 
             document.getElementById('edit-channel-name-input').value = ch.name || currentName || '';
-            // 圖示：value=自訂；placeholder=自動圖示
             const iconInput = document.getElementById('edit-channel-icon');
             iconInput.value = ch.userIcon || '';
             iconInput.placeholder = resolveAutoIcon(nk, ch.icon);
-            // 顏色：有自訂則勾選並帶入；否則預填預設色供參考
             document.getElementById('edit-channel-usecolor').checked = !!ch.color;
             document.getElementById('edit-channel-color').value = ch.color || DEFAULT_CARD_HEX;
 
@@ -1292,7 +1906,6 @@
             const useColor = document.getElementById('edit-channel-usecolor').checked;
             const colorVal = useColor ? document.getElementById('edit-channel-color').value : '';
 
-            // 本地即時更新（離線時也有反應）
             const ch = channelsList.find(c => c.id === id);
             if (ch) { ch.name = newName; ch.userIcon = iconVal; ch.color = colorVal; }
             recalculateAndRender();
@@ -1384,11 +1997,11 @@
             const finalResidualDisplay = document.getElementById('sheet-final-residual-display');
             const initialInput = document.getElementById('detail-initial-balance');
 
-            title.innerText = `詳細殘留明細：${currentChannel.name} ${currentChannel.type === 'external' ? '(外部)' : ''}`;
-            selector.value = channelId;
+            if (title) title.innerText = `詳細殘留明細：${currentChannel.name} ${currentChannel.type === 'external' ? '(外部)' : ''}`;
+            if (selector) selector.value = channelId;
 
             const initialBal = Number(currentChannel.initialBalance || 0);
-            initialInput.value = initialBal.toFixed(3);
+            if (initialInput) initialInput.value = initialBal.toFixed(3);
 
             const associatedRecords = recordsList
                 .filter(r => r.channelId === channelId)
@@ -1397,60 +2010,60 @@
                     if (!b.date || b.date === 'N/A') return -1;
                     const dateCmp = b.date.localeCompare(a.date);
                     if (dateCmp !== 0) return dateCmp;
-                    // 同日期：按 createdAt 倒序，最新新增的在最上面
                     return (b.createdAt || 0) - (a.createdAt || 0);
                 });
 
-            tbody.innerHTML = "";
+            if (tbody) {
+                tbody.innerHTML = "";
+                let sum = 0;
+                let totalFee = 0;
+                const todayStr = new Date().toISOString().split('T')[0];
 
-            let sum = 0;
-            let totalFee = 0;
-            const todayStr = new Date().toISOString().split('T')[0];
+                if (associatedRecords.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-[#3E2F28] italic">目前選定的通道尚無單筆殘留明細數據。您可以點擊右上角「新增明細」。</td></tr>`;
+                } else {
+                    associatedRecords.forEach((row) => {
+                        sum += Number(row.amount || 0);
+                        totalFee += Number(row.fee || 0);
 
-            if (associatedRecords.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-[#3E2F28] italic">目前選定的通道尚無單筆殘留明細數據。您可以點擊右上角「新增明細」。</td></tr>`;
-            } else {
-                associatedRecords.forEach((row) => {
-                    sum += Number(row.amount || 0);
-                    totalFee += Number(row.fee || 0);
+                        const isToday = row.date === todayStr;
+                        const tr = document.createElement('tr');
+                        tr.className = `transition-all ${isToday ? 'bg-[#A08070]/15 border-l-4 border-[#A08070]' : 'hover:bg-white/20 border-l-4 border-transparent'}`;
+                        
+                        tr.innerHTML = `
+                            <td class="p-3.5 font-bold text-[#3E2F28]">
+                                <div class="flex items-center gap-1.5 font-mono">
+                                    ${row.date}
+                                    ${isToday ? '<span class="bg-[#A08070] text-white text-[9px] px-1.5 py-0.5 rounded font-extrabold animate-pulse">NEW</span>' : ''}
+                                </div>
+                            </td>
+                            <td class="p-3.5"><span class="bg-[#3E2F28]/5 text-[#3E2F28] px-2 py-1 rounded-lg font-bold">${row.merchant}</span></td>
+                            <td class="p-3.5 text-slate-700 font-mono tracking-tight select-all">${row.orderNo}</td>
+                            <td class="p-3.5 text-[#3E2F28] font-bold font-mono tabular-nums text-[0.86rem]">${Number(row.fee || 0).toFixed(3)}</td>
+                            <td class="p-3.5 text-[#3E2F28]/80" style="font-family:'cwTeXYen','LXGW WenKai TC','Noto Serif TC',serif;font-size:0.78rem;letter-spacing:0.02em;">${row.remark || '無'}</td>
+                            <td class="p-3.5 text-right font-extrabold text-[#3E2F28] text-[0.86rem] font-mono tabular-nums">${Number(row.amount || 0).toLocaleString('zh-TW', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}</td>
+                            <td class="p-3.5 text-center">
+                              <button onclick="triggerDeleteDetail('${row.id}')" class="p-1.5 rounded bg-red-50 text-red-600 hover:bg-red-100 transition-colors border border-red-200" title="刪除">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                                </svg>
+                              </button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
 
-                    const isToday = row.date === todayStr;
-                    const tr = document.createElement('tr');
-                    tr.className = `transition-all ${isToday ? 'bg-[#A08070]/15 border-l-4 border-[#A08070]' : 'hover:bg-white/20 border-l-4 border-transparent'}`;
-                    
-                    tr.innerHTML = `
-                        <td class="p-3.5 font-bold text-[#3E2F28]">
-                            <div class="flex items-center gap-1.5 font-mono">
-                                ${row.date}
-                                ${isToday ? '<span class="bg-[#A08070] text-white text-[9px] px-1.5 py-0.5 rounded font-extrabold animate-pulse">NEW</span>' : ''}
-                            </div>
-                        </td>
-                        <td class="p-3.5"><span class="bg-[#3E2F28]/5 text-[#3E2F28] px-2 py-1 rounded-lg font-bold">${row.merchant}</span></td>
-                        <td class="p-3.5 text-slate-700 font-mono tracking-tight select-all">${row.orderNo}</td>
-                        <td class="p-3.5 text-[#3E2F28] font-bold font-mono tabular-nums text-[0.86rem]">${Number(row.fee || 0).toFixed(3)}</td>
-                        <td class="p-3.5 text-[#3E2F28]/80" style="font-family:'cwTeXYen','LXGW WenKai TC','Noto Serif TC',serif;font-size:0.78rem;letter-spacing:0.02em;">${row.remark || '無'}</td>
-                        <td class="p-3.5 text-right font-extrabold text-[#3E2F28] text-[0.86rem] font-mono tabular-nums">${Number(row.amount || 0).toLocaleString('zh-TW', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}</td>
-                        <td class="p-3.5 text-center">
-                          <button onclick="triggerDeleteDetail('${row.id}')" class="p-1.5 rounded bg-red-50 text-red-600 hover:bg-red-100 transition-colors border border-red-200" title="刪除">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-                            </svg>
-                          </button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
+                const rawFee = currentChannel.fee;
+                let numericFee = 0.0;
+                if (rawFee !== undefined && rawFee !== null) {
+                    numericFee = parseFloat(String(rawFee).replace('%', '')) || 0.0;
+                }
+                if (feeInput) feeInput.value = numericFee.toFixed(2);
+
+                const finalResidual = initialBal + sum - totalFee;
+                if (finalResidualDisplay) finalResidualDisplay.innerText = formatMoney(finalResidual);
             }
-
-            const rawFee = currentChannel.fee;
-            let numericFee = 0.0;
-            if (rawFee !== undefined && rawFee !== null) {
-                numericFee = parseFloat(String(rawFee).replace('%', '')) || 0.0;
-            }
-            feeInput.value = numericFee.toFixed(2);
-
-            const finalResidual = initialBal + sum - totalFee;
-            finalResidualDisplay.innerText = formatMoney(finalResidual);
         }
 
         async function syncInitialBalanceToCloud(value) {
@@ -1480,7 +2093,8 @@
         }
 
         function openAddDetailModal() {
-            document.getElementById('new-detail-date').value = new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById('new-detail-date');
+            if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
             
             if (currentSelectedChannelId) {
                 const currentChannel = channelsList.find(c => c.id === currentSelectedChannelId);
@@ -1489,13 +2103,16 @@
                     if (currentChannel.fee) {
                         defaultFeePercent = parseFloat(String(currentChannel.fee).replace('%', '')) || 0;
                     }
-                    document.getElementById('new-detail-fee-percent').value = defaultFeePercent.toFixed(2);
+                    const feePercentInput = document.getElementById('new-detail-fee-percent');
+                    if (feePercentInput) feePercentInput.value = defaultFeePercent.toFixed(2);
                 }
             } else {
-                document.getElementById('new-detail-fee-percent').value = "0.00";
+                const feePercentInput = document.getElementById('new-detail-fee-percent');
+                if (feePercentInput) feePercentInput.value = "0.00";
             }
             
-            document.getElementById('add-detail-modal').classList.remove('hidden');
+            const addDetailModal = document.getElementById('add-detail-modal');
+            if (addDetailModal) addDetailModal.classList.remove('hidden');
         }
         window.openAddDetailModal = openAddDetailModal;
 
@@ -1563,8 +2180,8 @@
                     fee: fee + "%",
                     initialBalance: balance
                 };
-                if (useColor) channelPayload.color = color; // 指定自訂色，否則跟隨系列色
-                if (iconVal) channelPayload.userIcon = iconVal; // 指定圖示，否則自動
+                if (useColor) channelPayload.color = color;
+                if (iconVal) channelPayload.userIcon = iconVal;
                 const newChRef = await addDoc(channelsCol, channelPayload);
 
                 if (balance > 0) {
@@ -1590,20 +2207,22 @@
 
         function populateSheetDropdowns() {
             const selector = document.getElementById('sheet-selector');
-            const previousVal = selector.value;
-            selector.innerHTML = "";
+            if (selector) {
+                const previousVal = selector.value;
+                selector.innerHTML = "";
 
-            channelsList.forEach(ch => {
-                const opt = document.createElement('option');
-                opt.value = ch.id;
-                opt.innerText = `${ch.name} ${ch.type === 'external' ? '(外部)' : ''}`;
-                selector.appendChild(opt);
-            });
+                channelsList.forEach(ch => {
+                    const opt = document.createElement('option');
+                    opt.value = ch.id;
+                    opt.innerText = `${ch.name} ${ch.type === 'external' ? '(外部)' : ''}`;
+                    selector.appendChild(opt);
+                });
 
-            if (previousVal && channelsList.some(c => c.id === previousVal)) {
-                selector.value = previousVal;
-            } else if (currentSelectedChannelId) {
-                selector.value = currentSelectedChannelId;
+                if (previousVal && channelsList.some(c => c.id === previousVal)) {
+                    selector.value = previousVal;
+                } else if (currentSelectedChannelId) {
+                    selector.value = currentSelectedChannelId;
+                }
             }
         }
 
@@ -1632,6 +2251,716 @@
             showToast(`已複製 ${currentChannel.name} 的對帳 Markdown 格式！`);
         }
 
+        /* ==========================================
+           📓 四方商戶帳密（Notebook）模組邏輯
+           ========================================== */
+        
+        function openAddNotebookModal() {
+            document.getElementById('notebook-modal-title').innerText = "新增四方商戶帳密";
+            document.getElementById('notebook-entry-id').value = "";
+            document.getElementById('nb-dual').value = "X";
+            document.getElementById('nb-merchant').value = "";
+            document.getElementById('nb-channel').value = "內部";
+            document.getElementById('nb-channel-title').value = ""; 
+            document.getElementById('nb-keyword').value = "";
+            document.getElementById('nb-subaccount').value = "";
+            document.getElementById('nb-subpassword').value = "";
+            document.getElementById('nb-url').value = "";
+            
+            const defRadio = document.querySelector('input[name="nb-row-color"][value="none"]');
+            if (defRadio) defRadio.checked = true;
+            
+            document.getElementById('notebook-add-modal').classList.remove('hidden');
+        }
+
+        function openEditNotebookModal(id) {
+            const entry = notebookList.find(e => e.id === id);
+            if (!entry) return;
+
+            document.getElementById('notebook-modal-title').innerText = "修改四方商戶帳密";
+            document.getElementById('notebook-entry-id').value = entry.id;
+            document.getElementById('nb-dual').value = entry.dual || "X";
+            document.getElementById('nb-merchant').value = entry.merchant || "";
+            document.getElementById('nb-channel').value = entry.channelName || "內部";
+            document.getElementById('nb-channel-title').value = entry.channelTitle || ""; 
+            document.getElementById('nb-keyword').value = entry.keyword || "";
+            document.getElementById('nb-subaccount').value = entry.subAccount || "";
+            document.getElementById('nb-subpassword').value = entry.subPassword || "";
+            document.getElementById('nb-url').value = entry.loginUrl || "";
+
+            const targetColor = entry.rowColor || "none";
+            const colorRadio = document.querySelector(`input[name="nb-row-color"][value="${targetColor}"]`);
+            if (colorRadio) colorRadio.checked = true;
+
+            document.getElementById('notebook-add-modal').classList.remove('hidden');
+        }
+
+        function closeNotebookModal() {
+            document.getElementById('notebook-add-modal').classList.add('hidden');
+        }
+
+        async function handleNotebookSubmit(event) {
+            event.preventDefault();
+            const id = document.getElementById('notebook-entry-id').value;
+            const dual = document.getElementById('nb-dual').value;
+            const merchant = document.getElementById('nb-merchant').value.trim();
+            const channelName = document.getElementById('nb-channel').value;
+            const channelTitle = document.getElementById('nb-channel-title').value.trim(); 
+            const keyword = document.getElementById('nb-keyword').value.trim();
+            const subAccount = document.getElementById('nb-subaccount').value.trim();
+            const subPassword = document.getElementById('nb-subpassword').value.trim();
+            const loginUrl = document.getElementById('nb-url').value.trim();
+            const rowColor = document.querySelector('input[name="nb-row-color"]:checked')?.value || 'none';
+
+            // 設定預設的大 sortOrder，加載後才不會打亂
+            const maxSortOrder = notebookList.length > 0 ? Math.max(...notebookList.map(item => item.sortOrder || 0)) : 0;
+
+            const payload = {
+                dual,
+                merchant,
+                channelName,
+                channelTitle, 
+                keyword,
+                subAccount,
+                subPassword,
+                loginUrl,
+                rowColor,
+                updatedAt: Date.now()
+            };
+
+            try {
+                if (id) {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'notebook_entries', id);
+                    await updateDoc(docRef, payload);
+                    showToast("✅ 已成功儲存四方帳密修改！");
+                } else {
+                    payload.sortOrder = maxSortOrder + 1;
+                    payload.createdAt = Date.now();
+                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'notebook_entries');
+                    await addDoc(colRef, payload);
+                    showToast("🎉 已成功建立商戶帳密資訊！");
+                }
+                closeNotebookModal();
+            } catch (err) {
+                console.error("參數配置儲存失敗:", err);
+                showToast("雲端同步失敗", "error");
+            }
+        }
+
+        let pendingNotebookIdToDelete = "";
+        function triggerDeleteNotebook(id, merchant) {
+            pendingNotebookIdToDelete = id;
+            document.getElementById('delete-nb-target').innerText = merchant;
+            document.getElementById('notebook-delete-modal').classList.remove('hidden');
+        }
+
+        function closeDeleteNotebookModal() {
+            document.getElementById('notebook-delete-modal').classList.add('hidden');
+            pendingNotebookIdToDelete = "";
+        }
+
+        async function executeDeleteNotebook() {
+            if (!pendingNotebookIdToDelete) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'notebook_entries', pendingNotebookIdToDelete);
+                await deleteDoc(docRef);
+                showToast("🗑️ 商戶帳密已成功自雲端刪除");
+                closeDeleteNotebookModal();
+            } catch (err) {
+                console.error("配置刪除失敗:", err);
+                showToast("移除資料失敗", "error");
+            }
+        }
+
+        function copyTextVal(text, fieldName) {
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            showToast(`已成功複製 ${fieldName}！`);
+        }
+
+        function filterNotebookEntries() {
+            renderNotebookData();
+        }
+
+        function renderNotebookData() {
+            const tbody = document.getElementById('notebook-table-body');
+            const emptyState = document.getElementById('notebook-empty-state');
+            if (!tbody) return;
+
+            const filterChannel = document.getElementById('notebook-filter-channel').value;
+            const searchVal = document.getElementById('notebook-search').value.toLowerCase().trim();
+
+            const filtered = notebookList.filter(item => {
+                const matchChannel = !filterChannel || item.channelName === filterChannel;
+                const matchSearch = !searchVal || 
+                    (item.merchant || "").toLowerCase().includes(searchVal) ||
+                    (item.channelTitle || "").toLowerCase().includes(searchVal) || 
+                    (item.channelName || "").toLowerCase().includes(searchVal) ||
+                    (item.subAccount || "").toLowerCase().includes(searchVal) ||
+                    (item.keyword || "").toLowerCase().includes(searchVal);
+                return matchChannel && matchSearch;
+            });
+
+            // 按 sortOrder 排序；若 sortOrder 缺失則依建立時間倒序
+            filtered.sort((a, b) => {
+                const sa = a.sortOrder !== undefined ? a.sortOrder : 99999;
+                const sb = b.sortOrder !== undefined ? b.sortOrder : 99999;
+                if (sa !== sb) return sa - sb;
+                return (b.createdAt || 0) - (a.createdAt || 0);
+            });
+
+            tbody.innerHTML = "";
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                filtered.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.setAttribute('draggable', 'true');
+                    
+                    // 绑定拖拽事件到商戶表格行上
+                    tr.addEventListener('dragstart', (e) => handleNotebookDragStart(e, row.id));
+                    tr.addEventListener('dragover', handleNotebookDragOver);
+                    tr.addEventListener('drop', (e) => handleNotebookDrop(e, row.id));
+                    tr.addEventListener('dragend', handleNotebookDragEnd);
+                    
+                    const rowBg = row.rowColor === 'green'
+                        ? 'background:rgba(154,168,150,0.22);'
+                        : row.rowColor === 'yellow'
+                        ? 'background:rgba(226,196,120,0.22);'
+                        : row.rowColor === 'brown'
+                        ? 'background:rgba(196,160,142,0.22);'
+                        : row.rowColor === 'blue'
+                        ? 'background:rgba(163,190,212,0.22);'
+                        : row.rowColor === 'red'
+                        ? 'background:rgba(220,172,172,0.22);'
+                        : row.rowColor === 'purple'
+                        ? 'background:rgba(186,172,220,0.22);'
+                        : row.rowColor === 'orange'
+                        ? 'background:rgba(234,196,163,0.22);'
+                        : row.rowColor === 'gray'
+                        ? 'background:rgba(110,110,110,0.38);'
+                        : '';
+                    tr.setAttribute('style', rowBg);
+                    tr.className = "hover:bg-white/30 transition border-b border-[#3E2F28]/10 text-[#3E2F28] cursor-move select-none";
+                    
+                    const urlAction = row.loginUrl 
+                        ? `<a href="${row.loginUrl}" target="_blank" class="text-blue-700 hover:underline font-semibold block truncate max-w-[150px]" title="前往登入網站: ${row.loginUrl}">${row.loginUrl}</a>` 
+                        : `<span class="text-[#3E2F28]/40 italic">未填寫</span>`;
+
+                    // 簡化雙開標誌為僅僅 O / X，藥丸形徽標
+                    const dualBadge = row.dual === 'O' 
+                        ? `<span class="bg-[#3E2F28] text-white w-7 h-7 rounded-full flex items-center justify-center font-extrabold text-sm border border-[#3E2F28] mx-auto">O</span>`
+                        : `<span class="bg-gray-100 text-gray-400 w-7 h-7 rounded-full flex items-center justify-center font-extrabold text-sm border border-gray-300 mx-auto">X</span>`;
+
+                    // 更換內部底色：全新鼠尾草綠（Morandi Sage Green）高階質感底色
+                    const channelBadge = row.channelName === '內部'
+                        ? `<span class="bg-[#8E9B8B]/55 text-[#243019] px-2.5 py-1 rounded-lg font-bold text-[11px] border border-[#6F7E6C]">🏠 內部</span>`
+                        : `<span class="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-lg font-bold text-[11px] border border-amber-300/30">🌍 外部</span>`;
+
+                    tr.innerHTML = `
+                        <!-- 雙開 (O/X) -->
+                        <td class="p-3.5 text-center">
+                            ${dualBadge}
+                        </td>
+                        <!-- 渠道類型 -->
+                        <td class="p-3.5 font-semibold">
+                            ${channelBadge}
+                        </td>
+                        <!-- 商戶名 -->
+                        <td class="p-3.5 font-bold">
+                            <span class="text-[#3E2F28] font-extrabold text-[11px]">${row.merchant || '-'}</span>
+                        </td>
+                        <!-- 通道名稱 -->
+                        <td class="p-3.5 font-extrabold text-[#3E2F28]/95">
+                            ${row.channelTitle || '-'}
+                        </td>
+                        <!-- 驗證關鍵字 -->
+                        <td class="p-3.5">
+                            <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-extrabold text-[11px] border border-emerald-300/30">
+                                ${row.keyword || '無'}
+                            </span>
+                        </td>
+                        <!-- 子帳號 -->
+                        <td class="p-3.5 font-mono select-all font-semibold">
+                            <div class="flex items-center gap-1">
+                                <span>${row.subAccount || '-'}</span>
+                                <button onclick="copyTextVal('${row.subAccount || ''}', '子帳號')" class="opacity-40 hover:opacity-100 transition-opacity ml-1 text-[10px]" title="複製帳號">📋</button>
+                            </div>
+                        </td>
+                        <!-- 子帳密碼 (直接明文) -->
+                        <td class="p-3.5 font-mono select-all font-semibold">
+                            <div class="flex items-center gap-1.5">
+                                <span>${row.subPassword || '-'}</span>
+                                <button onclick="copyTextVal('${row.subPassword || ''}', '子帳密碼')" class="opacity-40 hover:opacity-100 transition-opacity text-[10px]" title="複製密碼">📋</button>
+                            </div>
+                        </td>
+                        <!-- 登入網址 -->
+                        <td class="p-3.5">
+                            <div class="flex items-center gap-1.5">
+                                ${urlAction}
+                                ${row.loginUrl ? `<button onclick="copyTextVal('${row.loginUrl}', '登入網址')" class="opacity-40 hover:opacity-100 transition-opacity text-[10px]" title="複製網址">📋</button>` : ''}
+                            </div>
+                        </td>
+                        <!-- 操作按鈕 -->
+                        <td class="p-3.5 text-center">
+                            <div class="flex items-center justify-center gap-1.5 pointer-events-auto" onclick="event.stopPropagation();">
+                                <button onclick="openEditNotebookModal('${row.id}')" class="p-1.5 rounded bg-white hover:bg-white/80 transition text-blue-700 border border-blue-200" title="編輯">
+                                    ✏️
+                                </button>
+                                <button onclick="triggerDeleteNotebook('${row.id}', '${row.merchant}')" class="p-1.5 rounded bg-red-50 hover:bg-red-100 transition text-red-600 border border-red-200" title="刪除">
+                                    🗑️
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+
+        // ==========================================
+        // 第三方開關記錄：渲染 / 新增 / 編輯 / 刪除 / 拖拽
+        // ==========================================
+        function switchBadge(val) {
+            // ⭕️ = 開 / 開啟；❌ = 關 / 關閉
+            const on = (val === '⭕️' || val === '開' || val === '開啟');
+            return `<span class="text-base">${on ? '⭕️' : '❌'}</span>`;
+        }
+
+        // 內部／外部 狀態徽章配色（對應下拉選項）
+        const SL_STATUS_STYLE = {
+            '開啟':           'background:#3f9d6a;color:#fff;',
+            '餘額過高':       'background:#d6e9c4;color:#3d5a2a;',
+            '日切':           'background:#2c4a7c;color:#fff;',
+            '維護':           'background:#c0392b;color:#fff;',
+            'X':              'background:#4a4a4a;color:#fff;',
+            '停用':           'background:#8260a8;color:#fff;',
+            '額滿，充值關':   'background:#c17d3a;color:#fff;',
+            '額滿，充值沒關': 'background:#2a8576;color:#fff;',
+            '等組長通知開啟': 'background:#a8d0e6;color:#1e4258;',
+            '代付不順':       'background:#e07b2d;color:#fff;'
+        };
+        function statusBadge(val) {
+            if (!val) return '<span class="text-[#3E2F28]/40 italic text-[11px]">—</span>';
+            const style = SL_STATUS_STYLE[val] || 'background:#e2e2e2;color:#3E2F28;';
+            return `<span class="px-2.5 py-1 rounded-lg font-bold text-[11px] whitespace-nowrap" style="${style}">${val}</span>`;
+        }
+
+        // 下發限制 徽章配色（對應下拉選項）
+        const SL_LIMIT_STYLE = {
+            '❌':                   '',
+            '清空 不用核對':         'background:#dcdcdc;color:#3E2F28;',
+            '下發單間需滿人民幣2A':  'background:#2c4a7c;color:#fff;',
+            '下發單間需滿5000U':     'background:#f5d3d3;color:#c0392b;',
+            '下發單間需滿3000U':     'background:#d6e9c4;color:#3d5a2a;',
+            '下發單間需滿2000U':     'background:#f5dcbf;color:#8a5a2a;',
+            '下發單間需滿1500U':     'background:#9b2226;color:#fff;',
+            '下發單間需滿1000U':     'background:#cfe3f0;color:#1e4258;'
+        };
+        function limitBadge(val) {
+            if (!val) return '<span class="text-[#3E2F28]/40 italic text-[11px]">—</span>';
+            if (val === '❌') return '<span class="text-base">❌</span>';
+            const style = SL_LIMIT_STYLE[val] || 'background:#e2e2e2;color:#3E2F28;';
+            return `<span class="px-2.5 py-1 rounded-lg font-bold text-[11px] whitespace-nowrap" style="${style}">${val}</span>`;
+        }
+
+        // hex → rgba（半透明，保文字可讀）
+        function slHexToRgba(hex, a) {
+            hex = (hex || '').replace('#', '');
+            if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+            const n = parseInt(hex, 16);
+            if (isNaN(n) || hex.length !== 6) return '';
+            return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+        }
+        // 列底色：支援自選 hex（#開頭）與舊版莫蘭迪預設鍵
+        function slRowBg(c) {
+            if (!c || c === 'none') return '';
+            if (c[0] === '#') {
+                const v = slHexToRgba(c, 0.30);
+                return v ? `background:${v};` : '';
+            }
+            const legacy = {
+                green:'rgba(154,168,150,0.22)', yellow:'rgba(226,196,120,0.22)',
+                brown:'rgba(196,160,142,0.22)', blue:'rgba(163,190,212,0.22)',
+                red:'rgba(220,172,172,0.22)', purple:'rgba(186,172,220,0.22)',
+                orange:'rgba(234,196,163,0.22)', gray:'rgba(110,110,110,0.38)'
+            };
+            return legacy[c] ? `background:${legacy[c]};` : '';
+        }
+
+        // 舊版預設鍵 → hex（載入時讓色票對應到取色器）
+        const SL_PRESET_HEX = {
+            green:'#9aa896', yellow:'#e2c478', brown:'#c4a08e', blue:'#a3bed4',
+            red:'#dcacac', purple:'#baacdc', orange:'#eac4a3', gray:'#6e6e6e'
+        };
+        function pickSlColor(hex) {
+            document.getElementById('sl-row-color').value = hex;
+            document.getElementById('sl-color-input').value = hex;
+            updateSlColorPreview();
+        }
+        function clearSlColor() {
+            document.getElementById('sl-row-color').value = 'none';
+            updateSlColorPreview();
+        }
+        function loadSlColor(val) {
+            if (!val) val = 'none';
+            document.getElementById('sl-row-color').value = val;
+            const input = document.getElementById('sl-color-input');
+            if (val !== 'none') {
+                input.value = val[0] === '#' ? val : (SL_PRESET_HEX[val] || '#9aa896');
+            } else {
+                input.value = '#9aa896';
+            }
+            updateSlColorPreview();
+        }
+        function updateSlColorPreview() {
+            const v = document.getElementById('sl-row-color').value;
+            const el = document.getElementById('sl-color-preview');
+            if (!el) return;
+            if (!v || v === 'none') {
+                el.textContent = '無底色';
+                el.setAttribute('style', '');
+                el.className = 'ml-auto text-[10px] font-bold px-2.5 py-1 rounded-md border border-[#3E2F28]/15 text-[#3E2F28]/60';
+            } else {
+                const bg = slRowBg(v).replace('background:', '').replace(';', '');
+                el.textContent = v[0] === '#' ? v : v;
+                el.className = 'ml-auto text-[10px] font-bold px-2.5 py-1 rounded-md border border-[#3E2F28]/15 text-[#3E2F28]';
+                el.setAttribute('style', `background:${bg};`);
+            }
+        }
+
+        /* ===== 備註富文本（可選字上色 / 粗體） ===== */
+        function slRemarkColor(color) {
+            const el = document.getElementById('sl-remark');
+            el.focus();
+            try { document.execCommand('styleWithCSS', false, true); } catch (e) {}
+            document.execCommand('foreColor', false, color);
+        }
+        function slRemarkBold() {
+            const el = document.getElementById('sl-remark');
+            el.focus();
+            try { document.execCommand('styleWithCSS', false, true); } catch (e) {}
+            document.execCommand('bold');
+        }
+        // 取備註純文字（搜尋 / 判空用）
+        function slRemarkText(html) {
+            const tmp = document.createElement('div');
+            tmp.innerHTML = html || '';
+            return (tmp.textContent || '').trim();
+        }
+        // 清理備註 HTML：僅保留基本格式與文字顏色，移除腳本/事件
+        function sanitizeRemark(html) {
+            const tmp = document.createElement('div');
+            tmp.innerHTML = html || '';
+            tmp.querySelectorAll('script,style,iframe,object,embed,link,meta').forEach(n => n.remove());
+            const allowed = new Set(['SPAN','B','STRONG','I','EM','U','FONT','BR','DIV','P']);
+            tmp.querySelectorAll('*').forEach(el => {
+                const keepColor = el.style ? el.style.color : '';
+                const fontColor = el.tagName === 'FONT' ? el.getAttribute('color') : '';
+                [...el.attributes].forEach(a => el.removeAttribute(a.name));
+                if (keepColor) el.style.color = keepColor;
+                if (fontColor) el.setAttribute('color', fontColor);
+                if (!allowed.has(el.tagName)) el.replaceWith(...el.childNodes);
+            });
+            let out = tmp.innerHTML;
+            if (out === '<br>' || out === '<div><br></div>') out = '';
+            return slRemarkText(out) ? out : '';
+        }
+        function getCleanRemark() {
+            return sanitizeRemark(document.getElementById('sl-remark').innerHTML);
+        }
+
+        function renderSwitchlogData() {
+            const tbody = document.getElementById('switchlog-table-body');
+            const emptyState = document.getElementById('switchlog-empty-state');
+            if (!tbody) return;
+
+            // 先就地把底層陣列依 sortOrder 排好，確保拖拽用的索引 = 畫面顯示順序
+            switchlogList.sort((a, b) => {
+                const sa = a.sortOrder !== undefined ? a.sortOrder : 99999;
+                const sb = b.sortOrder !== undefined ? b.sortOrder : 99999;
+                if (sa !== sb) return sa - sb;
+                return (a.createdAt || 0) - (b.createdAt || 0);
+            });
+            // 補上缺失或重複的 sortOrder，讓索引穩定
+            switchlogList.forEach((item, idx) => { item.sortOrder = idx; });
+
+            const searchVal = (document.getElementById('switchlog-search').value || "").toLowerCase().trim();
+
+            const filtered = switchlogList.filter(item => {
+                return !searchVal ||
+                    (item.merchant || "").toLowerCase().includes(searchVal) ||
+                    (item.remark ? slRemarkText(item.remark).toLowerCase().includes(searchVal) : false) ||
+                    (item.note || "").toLowerCase().includes(searchVal) ||
+                    (item.time || "").toLowerCase().includes(searchVal);
+            });
+
+            tbody.innerHTML = "";
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+
+            filtered.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.setAttribute('draggable', 'true');
+                tr.addEventListener('dragstart', (e) => handleSwitchlogDragStart(e, row.id));
+                tr.addEventListener('dragover', handleSwitchlogDragOver);
+                tr.addEventListener('drop', (e) => handleSwitchlogDrop(e, row.id));
+                tr.addEventListener('dragend', handleSwitchlogDragEnd);
+                tr.addEventListener('click', () => {
+                    if (slDragJustEnded) return;   // 剛拖曳完不觸發
+                    openEditSwitchlogModal(row.id);
+                });
+                tr.className = "hover:bg-white/40 transition border-b border-[#3E2F28]/10 text-[#3E2F28] cursor-pointer select-none";
+
+                const safeMerchant = (row.merchant || "").replace(/'/g, "\\'");
+                tr.setAttribute('style', slRowBg(row.rowColor));
+                tr.innerHTML = `
+                    <td class="p-3 text-center font-bold">${row.merchant || ''} <span class="cursor-pointer align-middle ${row.note && row.note.trim() ? 'hover:opacity-70' : 'opacity-30 hover:opacity-70'}" onclick="event.stopPropagation(); openSwitchlogNote('${row.id}')" ${row.note && row.note.trim() ? `onmouseenter="showNoteTip(event,'${row.id}')" onmousemove="moveNoteTip(event)" onmouseleave="hideNoteTip()"` : 'title="新增備忘"'}>📝</span></td>
+                    <td class="p-3 text-center">${statusBadge(row.internal)}</td>
+                    <td class="p-3 text-center">${statusBadge(row.external)}</td>
+                    <td class="p-3 text-center font-mono tabular-nums">${row.deposit || '-'}</td>
+                    <td class="p-3 text-center">${limitBadge(row.time)}</td>
+                    <td class="px-1 py-3 text-center">${switchBadge(row.payout)}</td>
+                    <td class="px-1 py-3 text-center">${switchBadge(row.dispatch)}</td>
+                    <td class="px-4 py-3 min-w-[220px] whitespace-pre-wrap break-words">${slRemarkText(row.remark) ? row.remark : '<span class="text-[#3E2F28]/40 italic">—</span>'}</td>
+                    <td class="p-3 text-center">
+                        <div class="flex items-center justify-center gap-1.5 pointer-events-auto" onclick="event.stopPropagation();">
+                            <button onclick="triggerDeleteSwitchlog('${row.id}', '${safeMerchant}')" class="p-1.5 rounded bg-red-50 hover:bg-red-100 transition text-red-600 border border-red-200" title="刪除">🗑️</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openAddSwitchlogModal() {
+            document.getElementById('switchlog-modal-title').innerText = "新增第三方開關記錄";
+            document.getElementById('switchlog-entry-id').value = "";
+            document.getElementById('sl-merchant').value = "";
+            document.getElementById('sl-internal').value = "X";
+            document.getElementById('sl-external').value = "X";
+            document.getElementById('sl-deposit').value = "";
+            document.getElementById('sl-time').value = "";
+            document.getElementById('sl-payout').value = "❌";
+            document.getElementById('sl-dispatch').value = "❌";
+            document.getElementById('sl-remark').innerHTML = "";
+            loadSlColor('none');
+            document.getElementById('switchlog-add-modal').classList.remove('hidden');
+        }
+
+        function openEditSwitchlogModal(id) {
+            const entry = switchlogList.find(e => e.id === id);
+            if (!entry) return;
+            document.getElementById('switchlog-modal-title').innerText = "修改第三方開關記錄";
+            document.getElementById('switchlog-entry-id').value = entry.id;
+            document.getElementById('sl-merchant').value = entry.merchant || "";
+            document.getElementById('sl-internal').value = entry.internal || "X";
+            document.getElementById('sl-external').value = entry.external || "X";
+            document.getElementById('sl-deposit').value = entry.deposit || "";
+            document.getElementById('sl-time').value = entry.time || "";
+            document.getElementById('sl-payout').value = entry.payout || "❌";
+            document.getElementById('sl-dispatch').value = entry.dispatch || "❌";
+            document.getElementById('sl-remark').innerHTML = entry.remark || "";
+            loadSlColor(entry.rowColor || "none");
+            document.getElementById('switchlog-add-modal').classList.remove('hidden');
+        }
+
+        function closeSwitchlogModal() {
+            document.getElementById('switchlog-add-modal').classList.add('hidden');
+        }
+
+        async function handleSwitchlogSubmit(event) {
+            event.preventDefault();
+            const id = document.getElementById('switchlog-entry-id').value;
+            const payload = {
+                merchant: document.getElementById('sl-merchant').value.trim(),
+                internal: document.getElementById('sl-internal').value,
+                external: document.getElementById('sl-external').value,
+                deposit: document.getElementById('sl-deposit').value.trim(),
+                time: document.getElementById('sl-time').value.trim(),
+                payout: document.getElementById('sl-payout').value,
+                dispatch: document.getElementById('sl-dispatch').value,
+                remark: getCleanRemark(),
+                rowColor: document.getElementById('sl-row-color').value || 'none',
+                updatedAt: Date.now()
+            };
+
+            const maxSortOrder = switchlogList.length > 0 ? Math.max(...switchlogList.map(i => i.sortOrder || 0)) : 0;
+
+            try {
+                if (id) {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'switchlog_entries', id);
+                    await updateDoc(docRef, payload);
+                    showToast("✅ 已成功儲存開關記錄修改！");
+                } else {
+                    payload.sortOrder = maxSortOrder + 1;
+                    payload.createdAt = Date.now();
+                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'switchlog_entries');
+                    await addDoc(colRef, payload);
+                    showToast("🎉 已成功建立第三方開關記錄！");
+                }
+                closeSwitchlogModal();
+            } catch (err) {
+                console.error("開關記錄儲存失敗:", err);
+                showToast("雲端同步失敗", "error");
+            }
+        }
+
+        let pendingSwitchlogIdToDelete = "";
+        function triggerDeleteSwitchlog(id, merchant) {
+            pendingSwitchlogIdToDelete = id;
+            document.getElementById('delete-sl-target').innerText = merchant;
+            document.getElementById('switchlog-delete-modal').classList.remove('hidden');
+        }
+
+        function closeDeleteSwitchlogModal() {
+            document.getElementById('switchlog-delete-modal').classList.add('hidden');
+            pendingSwitchlogIdToDelete = "";
+        }
+
+        async function executeDeleteSwitchlog() {
+            if (!pendingSwitchlogIdToDelete) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'switchlog_entries', pendingSwitchlogIdToDelete);
+                await deleteDoc(docRef);
+                showToast("🗑️ 開關記錄已成功自雲端刪除");
+                closeDeleteSwitchlogModal();
+            } catch (err) {
+                console.error("開關記錄刪除失敗:", err);
+                showToast("移除資料失敗", "error");
+            }
+        }
+
+        /* ===== 第三方開關記錄拖曳排序 ===== */
+        let draggedSwitchlogId = null;
+        let slDragJustEnded = false;
+        function handleSwitchlogDragStart(e, id) {
+            draggedSwitchlogId = id;
+            e.dataTransfer.effectAllowed = "move";
+            e.currentTarget.classList.add('opacity-40');
+        }
+        function handleSwitchlogDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "move";
+        }
+        async function handleSwitchlogDrop(e, targetId) {
+            e.preventDefault();
+            if (draggedSwitchlogId === targetId) return;
+            // 搜尋過濾中不允許拖拽排序（顯示為子集，排序會混亂）
+            const searchActive = (document.getElementById('switchlog-search').value || "").trim() !== "";
+            if (searchActive) {
+                showToast("搜尋過濾中無法拖拽排序，請先清空搜尋", "info");
+                return;
+            }
+            const draggedIdx = switchlogList.findIndex(i => i.id === draggedSwitchlogId);
+            const targetIdx = switchlogList.findIndex(i => i.id === targetId);
+            if (draggedIdx !== -1 && targetIdx !== -1) {
+                const draggedItem = switchlogList[draggedIdx];
+                switchlogList.splice(draggedIdx, 1);
+                switchlogList.splice(targetIdx, 0, draggedItem);
+                switchlogList.forEach((item, idx) => { item.sortOrder = idx; });
+                renderSwitchlogData();
+                try {
+                    const batch = writeBatch(db);
+                    switchlogList.forEach((item, idx) => {
+                        const ref = doc(db, 'artifacts', appId, 'public', 'data', 'switchlog_entries', item.id);
+                        batch.update(ref, { sortOrder: idx });
+                    });
+                    await batch.commit();
+                    showToast("開關記錄排序已儲存至雲端！");
+                } catch (err) {
+                    console.error("儲存開關記錄排序失敗:", err);
+                    showToast("排序已更新（本地），雲端同步失敗", "error");
+                }
+            }
+        }
+        function handleSwitchlogDragEnd(e) {
+            e.currentTarget.classList.remove('opacity-40');
+            draggedSwitchlogId = null;
+            slDragJustEnded = true;
+            setTimeout(() => { slDragJustEnded = false; }, 60);
+        }
+        /* ===== 額外浮窗：便利貼備忘 ===== */
+        function openSwitchlogNote(id) {
+            const entry = switchlogList.find(e => e.id === id);
+            if (!entry) return;
+            document.getElementById('sl-note-id').value = entry.id;
+            document.getElementById('sl-note-merchant').innerText = entry.merchant || '—';
+            document.getElementById('sl-note-text').value = entry.note || '';
+            document.getElementById('switchlog-note-popup').classList.remove('hidden');
+            setTimeout(() => document.getElementById('sl-note-text').focus(), 50);
+        }
+        function closeSwitchlogNote() {
+            document.getElementById('switchlog-note-popup').classList.add('hidden');
+        }
+        async function saveSwitchlogNote() {
+            const id = document.getElementById('sl-note-id').value;
+            if (!id) return;
+            const note = document.getElementById('sl-note-text').value;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'switchlog_entries', id);
+                await updateDoc(docRef, { note, updatedAt: Date.now() });
+                showToast("📝 備忘已儲存至雲端！");
+                closeSwitchlogNote();
+            } catch (err) {
+                console.error("備忘儲存失敗:", err);
+                showToast("雲端同步失敗", "error");
+            }
+        }
+
+        /* ===== 備忘 hover 即時預覽 ===== */
+        function showNoteTip(e, id) {
+            const entry = switchlogList.find(x => x.id === id);
+            if (!entry || !entry.note || !entry.note.trim()) return;
+            const tip = document.getElementById('sl-note-tooltip');
+            tip.textContent = entry.note;
+            tip.classList.remove('hidden');
+            moveNoteTip(e);
+        }
+        function moveNoteTip(e) {
+            const tip = document.getElementById('sl-note-tooltip');
+            if (tip.classList.contains('hidden')) return;
+            const pad = 14;
+            const rect = tip.getBoundingClientRect();
+            let x = e.clientX + pad;
+            let y = e.clientY + pad;
+            if (x + rect.width > window.innerWidth - 8) x = e.clientX - rect.width - pad;
+            if (y + rect.height > window.innerHeight - 8) y = e.clientY - rect.height - pad;
+            tip.style.left = Math.max(8, x) + 'px';
+            tip.style.top = Math.max(8, y) + 'px';
+        }
+        function hideNoteTip() {
+            document.getElementById('sl-note-tooltip').classList.add('hidden');
+        }
+
+        window.openAddSwitchlogModal = openAddSwitchlogModal;
+        window.openEditSwitchlogModal = openEditSwitchlogModal;
+        window.closeSwitchlogModal = closeSwitchlogModal;
+        window.handleSwitchlogSubmit = handleSwitchlogSubmit;
+        window.triggerDeleteSwitchlog = triggerDeleteSwitchlog;
+        window.closeDeleteSwitchlogModal = closeDeleteSwitchlogModal;
+        window.executeDeleteSwitchlog = executeDeleteSwitchlog;
+        window.renderSwitchlogData = renderSwitchlogData;
+        window.openSwitchlogNote = openSwitchlogNote;
+        window.closeSwitchlogNote = closeSwitchlogNote;
+        window.saveSwitchlogNote = saveSwitchlogNote;
+        window.pickSlColor = pickSlColor;
+        window.clearSlColor = clearSlColor;
+        window.showNoteTip = showNoteTip;
+        window.moveNoteTip = moveNoteTip;
+        window.hideNoteTip = hideNoteTip;
+        window.slRemarkColor = slRemarkColor;
+        window.slRemarkBold = slRemarkBold;
+
+        // 綁定大盤搜尋及過濾事件
         document.getElementById('search-input').addEventListener('input', function(e) {
             searchQuery = e.target.value;
             recalculateAndRender();
@@ -1660,13 +2989,16 @@
           const btnSummary = document.getElementById('tab-btn-summary');
           const btnDetails = document.getElementById('tab-btn-details');
           const btnVcotc = document.getElementById('tab-btn-vcotc');
+          const btnNotebook = document.getElementById('tab-btn-notebook');
+          const btnSwitchlog = document.getElementById('tab-btn-switchlog');
           
           const tabSummary = document.getElementById('main-tab-summary');
           const tabDetails = document.getElementById('main-tab-details');
           const tabVcotc = document.getElementById('main-tab-vcotc');
+          const tabNotebook = document.getElementById('main-tab-notebook');
+          const tabSwitchlog = document.getElementById('main-tab-switchlog');
           const formulaCard = document.getElementById('accounting-formula-card');
 
-          // 清除樣式
           const baseClass = "whitespace-nowrap px-5 py-2 rounded-xl text-xs font-bold transition-all";
           const inactiveClass = baseClass + " text-[#3E2F28] hover:bg-white/40";
           const activeClass = baseClass + " active-tab";
@@ -1674,14 +3006,16 @@
           btnSummary.className = inactiveClass;
           btnDetails.className = inactiveClass;
           btnVcotc.className = inactiveClass + " flex items-center gap-1.5";
+          btnNotebook.className = inactiveClass + " flex items-center gap-1.5";
+          btnSwitchlog.className = inactiveClass + " flex items-center gap-1.5";
 
-          // 隱藏所有視圖
           tabSummary.classList.add('hidden');
           tabDetails.classList.add('hidden');
           tabVcotc.classList.add('hidden');
+          tabNotebook.classList.add('hidden');
+          tabSwitchlog.classList.add('hidden');
           formulaCard.classList.add('hidden');
 
-          // 顯示選擇的視圖
           if (tabId === 'summary') {
             btnSummary.className = activeClass;
             tabSummary.classList.remove('hidden');
@@ -1692,6 +3026,12 @@
           } else if (tabId === 'vcotc') {
             btnVcotc.className = activeClass + " flex items-center gap-1.5";
             tabVcotc.classList.remove('hidden');
+          } else if (tabId === 'notebook') {
+            btnNotebook.className = activeClass + " flex items-center gap-1.5";
+            tabNotebook.classList.remove('hidden');
+          } else if (tabId === 'switchlog') {
+            btnSwitchlog.className = activeClass + " flex items-center gap-1.5";
+            tabSwitchlog.classList.remove('hidden');
           }
         }
 
@@ -1733,12 +3073,10 @@
         const VCOTC_DEFAULT_RMB  = 288718.796;
         const VCOTC_DEFAULT_USDT = 34277.906;
 
-        // 本地狀態（由雲端 snapshot 即時驅動填充）
         let vcotcData  = [];
         let totalRMB   = VCOTC_DEFAULT_RMB;
         let totalUSDT  = VCOTC_DEFAULT_USDT;
 
-        // ---- Firestore 路徑輔助 ----
         function vcotcCloudReady() {
             return !!(window.fbDb && window.fbAppId && window.fbFns);
         }
@@ -1751,7 +3089,6 @@
             return doc(window.fbDb, 'artifacts', window.fbAppId, 'public', 'data', 'vcotc_meta', 'totals');
         }
 
-        // ---- 雲端啟動：由 module script 在驗證成功後呼叫 ----
         let vcotcListenersAttached = false;
         let vcotcSeeded = false;
         window.startVcotcCloud = function () {
@@ -1759,7 +3096,6 @@
             vcotcListenersAttached = true;
             const { onSnapshot } = window.fbFns;
 
-            // 明細集合即時監聽
             onSnapshot(vcotcCol(), (snap) => {
                 vcotcData = [];
                 snap.forEach(d => vcotcData.push({ id: d.id, ...d.data() }));
@@ -1771,7 +3107,6 @@
                 renderVCOTCData();
             }, (err) => console.error("VCOTC 明細監聽異常:", err));
 
-            // 總額文件即時監聽
             onSnapshot(vcotcMetaDoc(), (docSnap) => {
                 if (docSnap.exists()) {
                     const d = docSnap.data();
@@ -1799,7 +3134,6 @@
             }
         }
 
-        // 更新總額並同步雲端（任一參數傳 null 表示不變）
         window.vcotcUpdateTotals = async function (rmb, usdt) {
             if (rmb  !== null && rmb  !== undefined) totalRMB  = rmb;
             if (usdt !== null && usdt !== undefined) totalUSDT = usdt;
@@ -1845,9 +3179,11 @@
                 closeVcotcAddModal();
                 ['vcotc-new-date','vcotc-new-channelno','vcotc-new-merchantno',
                  'vcotc-new-rmb','vcotc-new-uqty','vcotc-new-rate','vcotc-new-remark'].forEach(id => {
-                    document.getElementById(id).value = '';
+                    const inp = document.getElementById(id);
+                    if (inp) inp.value = '';
                 });
-                document.querySelector('input[name="vcotc-row-color"][value="none"]').checked = true;
+                const normRadio = document.querySelector('input[name="vcotc-row-color"][value="none"]');
+                if (normRadio) normRadio.checked = true;
                 showToast('VCOTC 明細已新增並同步雲端！');
             } catch (err) {
                 console.error("VCOTC 明細新增失敗:", err);
@@ -1875,7 +3211,6 @@
             }
         }
 
-        // 數字顯示：最多三位小數，末尾的 0 不顯示（938.000→938、141.240→141.24）
         function vcotcTrimNum(v) {
             if (v === null || v === undefined || v === '') return v == null ? '' : String(v);
             const n = parseFloat(v);
@@ -1886,7 +3221,6 @@
         function renderVCOTCData() {
             const rmbInput = document.getElementById('vcotc-rmb-input');
             const usdtInput = document.getElementById('vcotc-usdt-input');
-            // 僅在使用者未聚焦輸入框時更新，避免打斷手動編輯
             if (rmbInput && document.activeElement !== rmbInput) rmbInput.value = totalRMB;
             if (usdtInput && document.activeElement !== usdtInput) usdtInput.value = totalUSDT;
 
@@ -1904,9 +3238,9 @@
             });
 
             if (sortedVcotc.length === 0) {
-                emptyState.classList.remove('hidden');
+                if (emptyState) emptyState.classList.remove('hidden');
             } else {
-                emptyState.classList.add('hidden');
+                if (emptyState) emptyState.classList.add('hidden');
                 sortedVcotc.forEach(row => {
                     const isFee = row.rowColor === 'warm';
                     const rmbClass = (isFee || parseFloat(row.rmb) < 0) ? 'text-red-600' : 'text-[#3E2F28]';
@@ -1949,18 +3283,15 @@
         async function handleVCOTC_CSVUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
-            if (!vcotcCloudReady()) { showToast("雲端尚未連線，無法匯入", "info"); event.target.value=''; return; }
+            if (!vcotcCloudReady()) { showToast("雲端尚未連線，請稍候再試", "info"); event.target.value=''; return; }
 
             const reader = new FileReader();
             reader.onload = async function(e) {
-                // 去除 BOM、容忍 \r\n，過濾空行
                 const text = e.target.result.replace(/^\uFEFF/, '');
                 const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
                 if (lines.length === 0) { showToast('CSV 內容為空', 'error'); event.target.value=''; return; }
 
-                // 欄位清理：去掉夾帶的 Tab／\r 與前後空白
                 const cell = (s) => (s == null ? '' : String(s).replace(/[\t\r]/g, '').trim());
-                // 數字最多三位小數，末尾 0 不保留
                 const fmt = (v) => {
                     const n = parseFloat(cell(v));
                     return isNaN(n) ? cell(v) : parseFloat(n.toFixed(3)).toString();
@@ -1968,8 +3299,6 @@
 
                 const headerLine = lines[0];
 
-                // ===== 格式 A：四方後台存款匯出檔（英文表頭）=====
-                // VCOTC_orderID, orderID, create_date, channel, status, amount, usdt_amount, usdt_price
                 if (headerLine.includes('VCOTC_orderID') ||
                     (headerLine.includes('orderID') && headerLine.includes('usdt_price'))) {
 
@@ -1977,28 +3306,27 @@
                     let sumRMB = 0, sumUSDT = 0;
                     for (let i = 1; i < lines.length; i++) {
                         const c = lines[i].split(',');
-                        const channelNo = cell(c[0]);           // VCOTC_orderID → 通道單號
+                        const channelNo = cell(c[0]);
                         if (!channelNo) continue;
-                        sumRMB  += parseFloat(cell(c[5])) || 0;  // amount
-                        sumUSDT += parseFloat(cell(c[6])) || 0;  // usdt_amount
+                        sumRMB  += parseFloat(cell(c[5])) || 0;
+                        sumUSDT += parseFloat(cell(c[6])) || 0;
                         const _rawDate = cell(c[2]);
                         const _ts = (() => { const t = Date.parse(_rawDate.replace(' ', 'T')); return isNaN(t) ? null : t; })();
                         parsed.push({
-                            date:       _rawDate.split(/[ T]/)[0],  // create_date → 只取當天日期
+                            date:       _rawDate.split(/[ T]/)[0],
                             channelNo:  channelNo,
-                            merchantNo: cell(c[1]),              // orderID → 商戶單號
-                            rmb:        fmt(c[5]),               // amount → 人民幣
-                            uQty:       fmt(c[6]),               // usdt_amount → U數量
-                            rate:       fmt(c[7]),               // usdt_price → 匯率
+                            merchantNo: cell(c[1]),
+                            rmb:        fmt(c[5]),
+                            uQty:       fmt(c[6]),
+                            rate:       fmt(c[7]),
                             remark:     '',
                             rowColor:   'none',
-                            _ts:        _ts                      // 完整建立時間（毫秒），僅供排序，不寫入雲端
+                            _ts:        _ts
                         });
                     }
 
                     if (parsed.length === 0) { showToast('未解析到任何明細資料', 'error'); event.target.value=''; return; }
 
-                    // 以「通道單號」去重，採累加（append）做帳，重覆匯入不會重複入帳
                     const existingKeys = new Set(vcotcData.map(r => (r.channelNo || '').trim()));
                     const toAdd = parsed.filter(r => !existingKeys.has(r.channelNo.trim()));
                     const skipped = parsed.length - toAdd.length;
@@ -2008,7 +3336,6 @@
                         event.target.value = '';
                         return;
                     }
-                    // 僅計入「實際入帳」的列，重複略過者不重複加總
                     const addedRMB  = toAdd.reduce((s, r) => s + (parseFloat(r.rmb)  || 0), 0);
                     const addedUSDT = toAdd.reduce((s, r) => s + (parseFloat(r.uQty) || 0), 0);
                     try {
@@ -2018,13 +3345,10 @@
                         const N = toAdd.length;
                         toAdd.forEach((row, i) => {
                             const { _ts, ...clean } = row;
-                            // 以實際建立時間排序；同秒或無時間時，假設 CSV 由新到舊，
-                            // 讓靠前的列獲得較大的 createdAt → 最新的排在最上面
                             const createdAt = (_ts != null) ? (_ts + (N - 1 - i)) : (base + (N - 1 - i));
                             batch.set(doc(vcotcCol()), { ...clean, createdAt });
                         });
                         await batch.commit();
-                        // 自動把本批金額加進「四方通道餘額 / 可用資產」總計
                         const newRMB  = Number((totalRMB  + addedRMB ).toFixed(3));
                         const newUSDT = Number((totalUSDT + addedUSDT).toFixed(3));
                         await setDoc(vcotcMetaDoc(), { totalRMB: newRMB, totalUSDT: newUSDT });
@@ -2039,7 +3363,6 @@
                     return;
                 }
 
-                // ===== 格式 B：舊版含中文表頭＋餘額列（覆蓋式匯入，保留相容）=====
                 let isDataSection = false;
                 let newData = [];
                 let csvRMB = null, csvUSDT = null;
@@ -2074,11 +3397,9 @@
                     try {
                         const { writeBatch, doc, setDoc } = window.fbFns;
                         const batch = writeBatch(window.fbDb);
-                        // 先清空雲端現有明細，再批量寫入
                         vcotcData.forEach(r => batch.delete(doc(vcotcCol(), r.id)));
                         const base = Date.now();
                         const N = newData.length;
-                        // 假設 CSV 由新到舊，讓靠前的列獲得較大的 createdAt → 最新的排在最上面
                         newData.forEach((row, i) => batch.set(doc(vcotcCol()), { ...row, createdAt: base + (N - 1 - i) }));
                         await batch.commit();
                         if (csvRMB !== null || csvUSDT !== null) {
@@ -2108,7 +3429,6 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             renderVCOTCData();
-            // 若雲端驗證早於本 script 完成，主動補啟動
             if (typeof window.startVcotcCloud === 'function' && window.fbDb) window.startVcotcCloud();
         });
     </script>
