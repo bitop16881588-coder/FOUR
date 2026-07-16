@@ -137,6 +137,13 @@
 
             <div class="space-y-3">
                 <div>
+                    <label class="block text-xs font-semibold text-[#3E2F28]/70 mb-1">操作人</label>
+                    <select id="login-operator"
+                        class="w-full bg-white/70 focus:bg-white text-sm px-3 py-2.5 rounded-xl border border-[#3E2F28]/20 outline-none focus:ring-2 focus:ring-[#A08070]/40 transition-all text-[#3E2F28] font-semibold">
+                        <!-- 由 OPERATOR_GROUPS 動態產生 -->
+                    </select>
+                </div>
+                <div>
                     <label class="block text-xs font-semibold text-[#3E2F28]/70 mb-1">帳號</label>
                     <input id="login-account" type="text" autocomplete="username" placeholder="請輸入帳號"
                         class="w-full bg-white/70 focus:bg-white text-sm px-3 py-2.5 rounded-xl border border-[#3E2F28]/20 outline-none focus:ring-2 focus:ring-[#A08070]/40 transition-all text-[#3E2F28] placeholder-[#3E2F28]/40">
@@ -162,13 +169,34 @@
         const AUTH_USERS = {
             "admin": "0c9229b0df3c09ef287fbcea493bbaf8b8b312ea45a9ba8b208c0e7424c8e607"
         };
-        const SESSION_KEY = "four_authed_user";
+        // ★ 操作人清單：大標題（班別）→ 底下人員，要增減直接改這裡
+        const OPERATOR_GROUPS = [
+            { label: "🌅 早班", members: ["TT", "佩佩", "豬豬", "PATTY", "yuee", "77"] },
+            { label: "🌤️ 中班", members: ["阿信", "仙仙", "小楓"] },
+            { label: "🌙 晚班", members: ["小樂", "阿睿", "HO"] },
+            { label: "👑 管理",  members: ["管理員"] }
+        ];
 
-        const gate    = document.getElementById('login-gate');
+        const SESSION_KEY = "four_authed_user";
+        const OPERATOR_KEY = "four_operator";
+
+        const gate     = document.getElementById('login-gate');
+        const opEl     = document.getElementById('login-operator');
         const accEl    = document.getElementById('login-account');
         const pwdEl    = document.getElementById('login-password');
         const errEl    = document.getElementById('login-error');
         const btnEl    = document.getElementById('login-submit');
+
+        opEl.innerHTML = '<option value="" disabled selected>請選擇操作人</option>' +
+            OPERATOR_GROUPS.map(g =>
+                `<optgroup label="${g.label}">` +
+                g.members.map(m => `<option value="${m}">${m}</option>`).join('') +
+                `</optgroup>`
+            ).join('');
+
+        window.getCurrentOperator = function () {
+            return sessionStorage.getItem(OPERATOR_KEY) || '未知操作人';
+        };
 
         if (sessionStorage.getItem(SESSION_KEY)) {
             gate.remove();
@@ -185,13 +213,16 @@
         async function tryLogin() {
             const acc = accEl.value.trim();
             const pwd = pwdEl.value;
+            const operator = opEl.value;
             errEl.textContent = '';
+            if (!operator) { errEl.textContent = '請選擇操作人'; opEl.focus(); return; }
             if (!acc || !pwd) { errEl.textContent = '請輸入帳號與密碼'; return; }
 
             const expected = AUTH_USERS[acc];
             const hash = await sha256Hex(pwd);
             if (expected && hash === expected) {
                 sessionStorage.setItem(SESSION_KEY, acc);
+                sessionStorage.setItem(OPERATOR_KEY, operator);
                 document.body.style.overflow = '';
                 gate.style.transition = 'opacity 0.25s ease';
                 gate.style.opacity = '0';
@@ -207,7 +238,7 @@
         [accEl, pwdEl].forEach(el =>
             el.addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); })
         );
-        accEl.focus();
+        opEl.focus();
     })();
     </script>
     <!-- ===== 登入閘門結束 ===== -->
@@ -260,6 +291,9 @@
             <button onclick="switchMainTab('switchlog')" id="tab-btn-switchlog" class="whitespace-nowrap px-5 py-2 rounded-xl text-xs font-bold transition-all text-[#3E2F28] hover:bg-white/40 flex items-center gap-1.5">
                 🔀 第三方開關記錄
             </button>
+            <button onclick="switchMainTab('auditlog')" id="tab-btn-auditlog" class="whitespace-nowrap px-5 py-2 rounded-xl text-xs font-bold transition-all text-[#3E2F28] hover:bg-white/40 flex items-center gap-1.5">
+                🧾 操作記錄
+            </button>
         </div>
 
         <!-- 聯動核對公式卡（明細模式顯示） -->
@@ -283,7 +317,7 @@
                 <div class="bg-white/40 p-2.5 rounded-xl border border-[#3E2F28]/25 text-right min-w-[150px] focus-within:ring-2 focus-within:ring-[#A08070]/20 transition-all">
                     <span class="text-[9px] text-[#3E2F28]/80 block font-semibold mb-0.5">初始餘額</span>
                     <div class="flex items-center justify-end font-mono">
-                        <input type="number" step="0.001" id="detail-initial-balance" onchange="syncInitialBalanceToCloud(this.value)" value="0.000" class="w-36 bg-transparent text-right text-base font-bold text-[#3E2F28] outline-none border-b border-transparent hover:border-[#3E2F28]/20 focus:border-[#3E2F28]">
+                        <input type="number" step="0.001" id="detail-initial-balance" value="0.000" readonly tabindex="-1" class="w-36 bg-transparent text-right text-base font-bold text-[#3E2F28] outline-none border-b border-transparent cursor-not-allowed select-none pointer-events-none">
                     </div>
                 </div>
 
@@ -455,26 +489,22 @@
                     </div>
                     <div class="text-[10px] font-extrabold text-[#3E2F28]/60 mb-2 tracking-wider flex items-center gap-1.5">
                         四方通道餘額總計 (RMB)
-                        <span class="text-[9px] bg-[#A08070]/20 text-[#A08070] px-1.5 py-0.5 rounded font-bold">可編輯</span>
                     </div>
                     <div class="flex items-baseline gap-1">
                         <input type="number" step="0.001" id="vcotc-rmb-input"
-                            value="288718.796"
-                            onchange="vcotcUpdateTotals(parseFloat(this.value) || 0, null);"
-                            class="text-3xl font-extrabold font-mono text-[#3E2F28] bg-transparent border-b-2 border-transparent hover:border-[#A08070]/40 focus:border-[#A08070] outline-none w-full transition-colors"
+                            value="288718.796" readonly tabindex="-1"
+                            class="text-3xl font-extrabold font-mono text-[#3E2F28] bg-transparent border-b-2 border-transparent outline-none w-full cursor-not-allowed select-none pointer-events-none"
                             style="min-width:0;">
                     </div>
                 </div>
                 <div class="bg-[#3E2F28] p-5 rounded-2xl shadow-md text-white border border-black/10 relative overflow-hidden group">
                     <div class="text-[10px] font-extrabold text-slate-300 mb-2 tracking-wider flex items-center gap-1.5">
                         可用資產總計 (USDT)
-                        <span class="text-[9px] bg-white/20 text-white/80 px-1.5 py-0.5 rounded font-bold">可編輯</span>
                     </div>
                     <div class="flex items-baseline gap-1">
                         <input type="number" step="0.001" id="vcotc-usdt-input"
-                            value="34277.906"
-                            onchange="vcotcUpdateTotals(null, parseFloat(this.value) || 0);"
-                            class="text-3xl font-extrabold font-mono text-white bg-transparent border-b-2 border-transparent hover:border-white/30 focus:border-white/70 outline-none w-full transition-colors"
+                            value="34277.906" readonly tabindex="-1"
+                            class="text-3xl font-extrabold font-mono text-white bg-transparent border-b-2 border-transparent outline-none w-full cursor-not-allowed select-none pointer-events-none"
                             style="min-width:0;">
                     </div>
                 </div>
@@ -511,7 +541,7 @@
                 <div>
                     <h3 class="text-base font-bold text-[#3E2F28]">📓 四方商戶帳密管理</h3>
                     <p class="text-xs text-[#3E2F28]/80 mt-1">
-                        獨立商戶參數管理：支援渠道類型（內/外部）篩選與多色莫蘭迪底色標記（支援滑鼠/觸控按行拖拽排序）。
+                        獨立商戶參數管理：帳密一律遮罩僅可複製；<strong>修改／刪除／拖拽排序僅限「管理員」身分</strong>登入後可用。
                     </p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2.5">
@@ -569,6 +599,20 @@
                     </p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2.5">
+                    <!-- 狀態篩選 -->
+                    <select id="switchlog-filter-status" onchange="renderSwitchlogData()" class="bg-white/80 text-xs font-bold px-3 py-2.5 rounded-xl border border-[#3E2F28]/20 outline-none focus:ring-2 focus:ring-[#A08070]/30 transition-all text-[#3E2F28]">
+                        <option value="">🔎 全部狀態</option>
+                        <option value="開啟">開啟</option>
+                        <option value="餘額過高">餘額過高</option>
+                        <option value="日切">日切</option>
+                        <option value="維護">維護</option>
+                        <option value="X">X</option>
+                        <option value="停用">停用</option>
+                        <option value="額滿，充值關">額滿，充值關</option>
+                        <option value="額滿，充值沒關">額滿，充值沒關</option>
+                        <option value="等組長通知開啟">等組長通知開啟</option>
+                        <option value="代付不順">代付不順</option>
+                    </select>
                     <!-- 快速關鍵字搜尋 -->
                     <div class="relative w-40 sm:w-48">
                         <input type="text" id="switchlog-search" oninput="renderSwitchlogData()" placeholder="搜尋商戶、備註..." class="w-full bg-white/80 text-xs px-3 py-2.5 pl-8 rounded-xl border border-[#3E2F28]/20 outline-none focus:ring-2 focus:ring-[#A08070]/30 transition-all text-[#3E2F28]">
@@ -603,6 +647,67 @@
                 </table>
                 <div id="switchlog-empty-state" class="hidden p-10 text-center text-[#3E2F28]/70 italic text-xs">
                     📝 尚無第三方開關記錄，請點擊右上角「新增記錄」建立您的第一筆。
+                </div>
+            </div>
+        </div>
+
+        <!-- 主Tab 6: 操作記錄（稽核軌跡） -->
+        <div id="main-tab-auditlog" class="glass-panel p-6 rounded-[2rem] space-y-6 hidden border border-[#3E2F28]/15 animate-fade-in">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-base font-bold text-[#3E2F28]">🧾 操作記錄</h3>
+                    <p class="text-xs text-[#3E2F28]/80 mt-1">
+                        完整稽核軌跡：記錄每一次新增／修改／刪除的<strong>操作人、時間、模組、對象與異動內容</strong>（雲端即時同步；刪除記錄需操作密碼）。
+                    </p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <select id="audit-filter-operator" onchange="renderAuditData()" class="bg-white/80 text-xs font-bold px-3 py-2.5 rounded-xl border border-[#3E2F28]/20 outline-none text-[#3E2F28]">
+                        <option value="">👤 全部操作人</option>
+                    </select>
+                    <select id="audit-filter-module" onchange="renderAuditData()" class="bg-white/80 text-xs font-bold px-3 py-2.5 rounded-xl border border-[#3E2F28]/20 outline-none text-[#3E2F28]">
+                        <option value="">📂 全部模組</option>
+                        <option value="商戶帳密">商戶帳密</option>
+                        <option value="開關記錄">開關記錄</option>
+                        <option value="VCOTC">VCOTC</option>
+                        <option value="殘留明細">殘留明細</option>
+                        <option value="通道">通道</option>
+                    </select>
+                    <select id="audit-filter-action" onchange="renderAuditData()" class="bg-white/80 text-xs font-bold px-3 py-2.5 rounded-xl border border-[#3E2F28]/20 outline-none text-[#3E2F28]">
+                        <option value="">⚙️ 全部動作</option>
+                        <option value="新增">新增</option>
+                        <option value="修改">修改</option>
+                        <option value="刪除">刪除</option>
+                    </select>
+                    <div class="relative w-40 sm:w-48">
+                        <input type="text" id="audit-search" oninput="renderAuditData()" placeholder="搜尋對象、內容..." class="w-full bg-white/80 text-xs px-3 py-2.5 pl-8 rounded-xl border border-[#3E2F28]/20 outline-none focus:ring-2 focus:ring-[#A08070]/30 transition-all text-[#3E2F28]">
+                        <span class="absolute left-2.5 top-3 text-xs text-[#3E2F28]/60">🔍</span>
+                    </div>
+                    <span id="audit-count" class="text-[11px] font-bold text-[#3E2F28]/70 px-2">共 0 筆</span>
+                    <button onclick="guardClearAudit()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-sm border border-red-700 flex items-center gap-1.5" title="刪除目前篩選出的所有記錄（需操作密碼）">
+                        🗑️ 清空篩選結果
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-[#3E2F28]/15 bg-white/20">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-white/60 text-[#3E2F28] font-bold border-b border-[#3E2F28]/15">
+                            <th class="p-3.5 whitespace-nowrap">時間</th>
+                            <th class="p-3.5 whitespace-nowrap">操作人</th>
+                            <th class="p-3.5 text-center">動作</th>
+                            <th class="p-3.5">模組</th>
+                            <th class="p-3.5">對象</th>
+                            <th class="p-3.5 min-w-[280px]">異動內容</th>
+                            <th class="p-3.5 text-center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="audit-table-body" class="divide-y divide-[#3E2F28]/10 text-[#3E2F28] font-medium">
+                        <!-- 動態載入操作記錄 -->
+                    </tbody>
+                </table>
+                <div id="audit-empty-state" class="hidden p-10 text-center text-[#3E2F28]/70 italic text-xs">
+                    🧾 尚無操作記錄，任何新增／修改／刪除都會自動寫入這裡。
                 </div>
             </div>
         </div>
@@ -705,8 +810,8 @@
                     ✏️
                 </div>
                 <div>
-                    <h3 class="text-sm font-bold text-[#3E2F28]">新增明細流水帳目</h3>
-                    <p class="text-[11px] text-[#3E2F28]/75">手動追加一筆交易帳目，雲端系統將進行秒級多端同步</p>
+                    <h3 class="text-sm font-bold text-[#3E2F28]" id="detail-modal-title">新增明細流水帳目</h3>
+                    <p class="text-[11px] text-[#3E2F28]/75" id="detail-modal-subtitle">手動追加一筆交易帳目，雲端系統將進行秒級多端同步</p>
                 </div>
             </div>
 
@@ -744,7 +849,7 @@
                     <button type="button" onclick="closeAddDetailModal()" class="flex-1 bg-white/40 hover:bg-white/60 py-3 rounded-xl font-bold transition border border-[#3E2F28]/20">
                         取消
                     </button>
-                    <button type="submit" class="flex-1 bg-[#3E2F28] hover:bg-[#A08070] text-white py-3 rounded-xl font-bold transition shadow-md border border-[#3E2F28]">
+                    <button type="submit" id="detail-modal-submit" class="flex-1 bg-[#3E2F28] hover:bg-[#A08070] text-white py-3 rounded-xl font-bold transition shadow-md border border-[#3E2F28]">
                         儲存並同步雲端
                     </button>
                 </div>
@@ -827,8 +932,8 @@
             <div class="flex items-center gap-3 mb-5">
                 <div class="w-9 h-9 bg-[#3E2F28] text-white rounded-xl flex items-center justify-center text-lg">🛡️</div>
                 <div>
-                    <h3 class="text-sm font-bold text-[#3E2F28]">新增 VCOTC 明細</h3>
-                    <p class="text-[11px] text-[#3E2F28]/60">手動輸入一筆交易紀錄</p>
+                    <h3 class="text-sm font-bold text-[#3E2F28]" id="vcotc-modal-title">新增 VCOTC 明細</h3>
+                    <p class="text-[11px] text-[#3E2F28]/60" id="vcotc-modal-subtitle">手動輸入一筆交易紀錄</p>
                 </div>
             </div>
             <div class="space-y-3 text-xs">
@@ -891,7 +996,7 @@
             </div>
             <div class="flex gap-3 pt-4">
                 <button onclick="closeVcotcAddModal()" class="flex-1 bg-white/40 hover:bg-white/70 py-3 rounded-xl font-bold transition border border-[#3E2F28]/20 text-xs">取消</button>
-                <button onclick="submitVcotcAdd()" class="flex-1 bg-[#3E2F28] hover:bg-[#A08070] text-white py-3 rounded-xl font-bold transition shadow-md text-xs">確認新增</button>
+                <button onclick="submitVcotcAdd()" id="vcotc-modal-submit" class="flex-1 bg-[#3E2F28] hover:bg-[#A08070] text-white py-3 rounded-xl font-bold transition shadow-md text-xs">確認新增</button>
             </div>
         </div>
     </div>
@@ -1231,7 +1336,7 @@
                 <div class="flex items-center gap-2">
                     <span class="text-lg">📝</span>
                     <div>
-                        <h3 class="text-sm font-bold text-[#3E2F28]">備忘浮窗</h3>
+                        <h3 class="text-sm font-bold text-[#3E2F28]" id="sl-note-title">備忘浮窗</h3>
                         <p class="text-[11px] text-[#3E2F28]/60" id="sl-note-merchant">—</p>
                     </div>
                 </div>
@@ -1239,6 +1344,7 @@
             </div>
             <div class="p-5">
                 <input type="hidden" id="sl-note-id">
+                <input type="hidden" id="sl-note-field" value="note">
                 <textarea id="sl-note-text" rows="7" placeholder="在這裡隨手記錄這筆商戶的備忘、待辦或臨時提醒…" class="w-full bg-white/80 focus:bg-white p-3 rounded-2xl border border-[#3E2F28]/20 outline-none focus:ring-2 focus:ring-[#A08070]/30 resize-none text-xs leading-relaxed text-[#3E2F28]"></textarea>
                 <div class="flex gap-3 pt-4 text-xs">
                     <button onclick="closeSwitchlogNote()" class="flex-1 bg-white/40 hover:bg-white/60 py-2.5 rounded-xl font-bold transition border border-[#3E2F28]/20">關閉</button>
@@ -1250,6 +1356,31 @@
 
     <!-- 備忘 hover 即時預覽浮框（滑鼠移到 📝 時顯示內容） -->
     <div id="sl-note-tooltip" class="hidden fixed z-[60] max-w-xs px-3 py-2 rounded-xl shadow-xl border border-[#3E2F28]/20 text-xs text-[#3E2F28] whitespace-pre-wrap break-words leading-relaxed pointer-events-none" style="background:#fffdf5;"></div>
+
+    <!-- 操作密碼驗證 Modal（修改／刪除商戶帳密前需通過） -->
+    <div id="op-auth-modal" class="fixed inset-0 bg-black/45 backdrop-blur-sm z-[70] flex items-center justify-center p-4 hidden">
+        <div class="glass-panel p-6 rounded-[2rem] w-full max-w-sm shadow-2xl relative border-2 border-[#3E2F28]" style="background:rgba(255,250,245,0.98);">
+            <button onclick="closeOpAuthModal()" class="absolute top-4 right-4 text-[#3E2F28] hover:opacity-60 transition">✕</button>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-[#3E2F28] text-white flex items-center justify-center text-lg">🔐</div>
+                <div>
+                    <h3 class="text-sm font-bold text-[#3E2F28]">操作密碼驗證</h3>
+                    <p class="text-[11px] text-[#3E2F28]/65" id="op-auth-desc">此動作需輸入操作密碼</p>
+                </div>
+            </div>
+            <div class="bg-[#A08070]/10 border border-[#A08070]/30 rounded-xl px-3 py-2 mb-3 text-[11px] text-[#3E2F28] font-semibold">
+                目前操作人：<span id="op-auth-operator" class="font-extrabold">—</span>
+            </div>
+            <input type="password" id="op-auth-input" placeholder="請輸入操作密碼" autocomplete="off"
+                class="w-full bg-white/80 focus:bg-white text-sm px-3 py-2.5 rounded-xl border border-[#3E2F28]/20 outline-none focus:ring-2 focus:ring-[#A08070]/40 transition-all text-[#3E2F28]">
+            <p id="op-auth-error" class="text-[11px] text-red-500 font-semibold h-4 px-1 mt-1"></p>
+            <div class="flex gap-3 pt-3 text-xs">
+                <button onclick="closeOpAuthModal()" class="flex-1 bg-white/40 hover:bg-white/60 py-2.5 rounded-xl font-bold transition border border-[#3E2F28]/20">取消</button>
+                <button onclick="submitOpAuth()" class="flex-1 bg-[#3E2F28] hover:bg-[#A08070] text-white py-2.5 rounded-xl font-bold transition shadow-md">確認驗證</button>
+            </div>
+            <p class="text-[10px] text-[#3E2F28]/40 text-center mt-3">驗證通過後，本次登入期間內此類操作免再輸入</p>
+        </div>
+    </div>
 
     <!-- 即時提示框 -->
     <div id="toast" class="fixed bottom-6 right-6 bg-[#3E2F28] text-white text-xs font-bold py-3 px-5 rounded-2xl shadow-xl transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-2 border border-[#A08070]/30">
@@ -1285,6 +1416,7 @@
         window.executeEditChannel = executeEditChannel;
 
         window.openVcotcAddModal = openVcotcAddModal;
+        window.openVcotcEditModal = openVcotcEditModal;
         window.closeVcotcAddModal = closeVcotcAddModal;
         window.submitVcotcAdd = submitVcotcAdd;
         window.vcotcDeleteRow = vcotcDeleteRow;
@@ -1397,6 +1529,9 @@
 
                 // 啟動第三方開關記錄雲端監聽
                 setupSwitchlogListener();
+
+                // 啟動操作記錄（稽核）雲端監聽
+                setupAuditListener();
             } else {
                 document.getElementById('cloud-status-text').innerText = "未取得雲端驗證";
                 document.getElementById('cloud-status-dot').className = "relative inline-flex rounded-full h-2 w-2 bg-red-400";
@@ -1973,9 +2108,13 @@
 
         async function executeDeleteDetail() {
             if (!pendingDetailIdToDelete) return;
+            const before = recordsList.find(r => r.id === pendingDetailIdToDelete) || {};
             try {
                 const recDoc = doc(db, 'artifacts', appId, 'public', 'data', 'records', pendingDetailIdToDelete);
                 await deleteDoc(recDoc);
+                const ch = channelsList.find(c => c.id === before.channelId);
+                logAudit('殘留明細', '刪除', `${ch?.name || '-'} / ${before.orderNo || '-'}`,
+                    summarizeFields(before, ['date','merchant','orderNo','amount','fee','remark']));
                 showToast("流水帳目已成功從雲端移除");
                 closeDeleteDetailModal();
             } catch (err) {
@@ -2043,11 +2182,18 @@
                             <td class="p-3.5 text-[#3E2F28]/80" style="font-family:'cwTeXYen','LXGW WenKai TC','Noto Serif TC',serif;font-size:0.78rem;letter-spacing:0.02em;">${row.remark || '無'}</td>
                             <td class="p-3.5 text-right font-extrabold text-[#3E2F28] text-[0.86rem] font-mono tabular-nums">${Number(row.amount || 0).toLocaleString('zh-TW', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}</td>
                             <td class="p-3.5 text-center">
+                              <div class="flex items-center justify-center gap-1.5">
+                              <button onclick="openEditDetailModal('${row.id}')" class="p-1.5 rounded bg-[#A08070]/15 text-[#3E2F28] hover:bg-[#A08070]/30 transition-colors border border-[#A08070]/40" title="編輯">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/>
+                                </svg>
+                              </button>
                               <button onclick="triggerDeleteDetail('${row.id}')" class="p-1.5 rounded bg-red-50 text-red-600 hover:bg-red-100 transition-colors border border-red-200" title="刪除">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                   <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
                                 </svg>
                               </button>
+                              </div>
                             </td>
                         `;
                         tbody.appendChild(tr);
@@ -2092,7 +2238,44 @@
             }
         }
 
+        let editingDetailId = "";
+
+        function setDetailModalMode(isEdit) {
+            const t = document.getElementById('detail-modal-title');
+            const sub = document.getElementById('detail-modal-subtitle');
+            const btn = document.getElementById('detail-modal-submit');
+            if (t) t.innerText = isEdit ? '編輯明細流水帳目' : '新增明細流水帳目';
+            if (sub) sub.innerText = isEdit ? '修改後將即時覆寫雲端資料，殘留總額自動重算' : '手動追加一筆交易帳目，雲端系統將進行秒級多端同步';
+            if (btn) btn.innerText = isEdit ? '更新並同步雲端' : '儲存並同步雲端';
+        }
+
+        function openEditDetailModal(id) {
+            const row = recordsList.find(r => r.id === id);
+            if (!row) { showToast("找不到該筆明細", "error"); return; }
+            editingDetailId = id;
+            setDetailModalMode(true);
+
+            const amount = Number(row.amount || 0);
+            const fee = Number(row.fee || 0);
+            const feePercent = amount !== 0 ? (fee / amount) * 100 : 0;
+
+            document.getElementById('new-detail-date').value = row.date || new Date().toISOString().split('T')[0];
+            document.getElementById('new-detail-merchant').value = row.merchant || '';
+            document.getElementById('new-detail-orderno').value = row.orderNo || '';
+            document.getElementById('new-detail-fee-percent').value = feePercent.toFixed(2);
+            document.getElementById('new-detail-amount').value = amount;
+            document.getElementById('new-detail-remark').value = row.remark || '';
+
+            const m = document.getElementById('add-detail-modal');
+            if (m) m.classList.remove('hidden');
+        }
+        window.openEditDetailModal = openEditDetailModal;
+
         function openAddDetailModal() {
+            editingDetailId = "";
+            setDetailModalMode(false);
+            const form = document.getElementById('add-detail-form');
+            if (form) form.reset();
             const dateInput = document.getElementById('new-detail-date');
             if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
             
@@ -2134,6 +2317,32 @@
 
             const calculatedFee = Number(((amount * feePercent) / 100).toFixed(3));
 
+            if (editingDetailId) {
+                const before = recordsList.find(r => r.id === editingDetailId) || {};
+                try {
+                    const recDoc = doc(db, 'artifacts', appId, 'public', 'data', 'records', editingDetailId);
+                    await updateDoc(recDoc, {
+                        date: date,
+                        merchant: merchant,
+                        orderNo: orderNo,
+                        fee: calculatedFee,
+                        remark: remark,
+                        amount: amount
+                    });
+                    const ch = channelsList.find(c => c.id === currentSelectedChannelId);
+                    const diff = diffFields(before, { date, merchant, orderNo, fee: calculatedFee, remark, amount },
+                        ['date','merchant','orderNo','amount','fee','remark']);
+                    logAudit('殘留明細', '修改', `${ch?.name || '-'} / ${orderNo}`, diff || '（內容未變更）');
+                    editingDetailId = "";
+                    closeAddDetailModal();
+                    showToast(`明細已更新，手續費：¥ ${calculatedFee}`);
+                } catch (err) {
+                    console.error("明細更新失敗:", err);
+                    showToast("雲端同步失敗", "error");
+                }
+                return;
+            }
+
             try {
                 const recordsCol = collection(db, 'artifacts', appId, 'public', 'data', 'records');
                 await addDoc(recordsCol, {
@@ -2147,6 +2356,9 @@
                     createdAt: Date.now()
                 });
 
+                const ch = channelsList.find(c => c.id === currentSelectedChannelId);
+                logAudit('殘留明細', '新增', `${ch?.name || '-'} / ${orderNo}`,
+                    `交易日期：${date}；商戶：${merchant}；金額：${amount}；手續費：${calculatedFee}；備註：${remark}`);
                 closeAddDetailModal();
                 showToast(`流水已寫入，手續費：¥ ${calculatedFee}`);
             } catch (err) {
@@ -2252,9 +2464,293 @@
         }
 
         /* ==========================================
+           🔐 操作密碼驗證 + 🧾 操作記錄（稽核）
+           ========================================== */
+
+        // ★ 操作密碼 SHA-256（目前密碼：hongqwsa333）。要改密碼請換掉這串雜湊。
+        const OP_PASSWORD_HASH = "ac749fac8ec3db030bacb6cc7ef1e83492a41d56730e68829b3434d489b17089";
+        const OP_AUTH_SESSION_KEY = "four_op_verified";
+
+        let auditList = [];
+        let pendingOpAction = null;
+
+        function currentOperator() {
+            return (typeof window.getCurrentOperator === 'function')
+                ? window.getCurrentOperator()
+                : (sessionStorage.getItem('four_operator') || '未知操作人');
+        }
+
+        async function opSha256Hex(str) {
+            const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+            return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2, '0')).join('');
+        }
+
+        // 需要密碼才能執行的動作入口
+        function requireOpPassword(desc, callback) {
+            if (sessionStorage.getItem(OP_AUTH_SESSION_KEY) === '1') { callback(); return; }
+            pendingOpAction = callback;
+            document.getElementById('op-auth-desc').innerText = desc || '此動作需輸入操作密碼';
+            document.getElementById('op-auth-operator').innerText = currentOperator();
+            document.getElementById('op-auth-error').innerText = '';
+            const inp = document.getElementById('op-auth-input');
+            inp.value = '';
+            document.getElementById('op-auth-modal').classList.remove('hidden');
+            setTimeout(() => inp.focus(), 50);
+        }
+        function closeOpAuthModal() {
+            document.getElementById('op-auth-modal').classList.add('hidden');
+            pendingOpAction = null;
+        }
+        async function submitOpAuth() {
+            const val = document.getElementById('op-auth-input').value;
+            const errEl = document.getElementById('op-auth-error');
+            if (!val) { errEl.innerText = '請輸入操作密碼'; return; }
+            const hash = await opSha256Hex(val);
+            if (hash !== OP_PASSWORD_HASH) {
+                errEl.innerText = '操作密碼錯誤';
+                document.getElementById('op-auth-input').value = '';
+                return;
+            }
+            sessionStorage.setItem(OP_AUTH_SESSION_KEY, '1');
+            const fn = pendingOpAction;
+            document.getElementById('op-auth-modal').classList.add('hidden');
+            pendingOpAction = null;
+            if (typeof fn === 'function') fn();
+        }
+        window.closeOpAuthModal = closeOpAuthModal;
+        window.submitOpAuth = submitOpAuth;
+        window.requireOpPassword = requireOpPassword;
+
+        // ===== 稽核寫入 =====
+        async function logAudit(module, action, target, detail) {
+            try {
+                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'audit_logs');
+                await addDoc(colRef, {
+                    operator: currentOperator(),
+                    account: sessionStorage.getItem('four_authed_user') || '-',
+                    module: module || '-',
+                    action: action || '-',
+                    target: target || '-',
+                    detail: detail || '',
+                    at: Date.now()
+                });
+            } catch (err) {
+                console.error("操作記錄寫入失敗:", err);
+            }
+        }
+        window.logAudit = logAudit;
+
+        // 敏感欄位在稽核內容中一律遮罩
+        const AUDIT_MASK_FIELDS = new Set(['subAccount', 'subPassword']);
+        const AUDIT_FIELD_LABEL = {
+            dual: '雙開', merchant: '商戶名', channelName: '渠道類型', channelTitle: '通道名稱',
+            keyword: '驗證關鍵字', subAccount: '子帳號', subPassword: '子帳密碼', loginUrl: '登入網址',
+            rowColor: '底色', internal: '內部', external: '外部', deposit: '放置金', time: '下發限制',
+            payout: '出款', dispatch: '下發', remark: '備註', note: '備忘',
+            noteInternal: '內部狀態備忘', noteExternal: '外部狀態備忘',
+            date: '交易日期', orderNo: '單號', amount: '金額', fee: '手續費',
+            channelNo: '通道單號', merchantNo: '商戶單號', rmb: '人民幣', uQty: 'U數量', rate: '匯率'
+        };
+        function auditVal(field, v) {
+            if (AUDIT_MASK_FIELDS.has(field)) return v ? '******' : '（空）';
+            if (v === undefined || v === null || v === '') return '（空）';
+            const str = String(v).replace(/<[^>]*>/g, '').trim();
+            return str.length > 40 ? str.slice(0, 40) + '…' : (str || '（空）');
+        }
+        // 比對前後差異，產生「欄位：舊 → 新」字串
+        function diffFields(before, after, fields) {
+            const out = [];
+            fields.forEach(f => {
+                const b = before ? before[f] : undefined;
+                const a = after ? after[f] : undefined;
+                if (String(b ?? '') !== String(a ?? '')) {
+                    out.push(`${AUDIT_FIELD_LABEL[f] || f}：${auditVal(f, b)} → ${auditVal(f, a)}`);
+                }
+            });
+            return out.join('；');
+        }
+        function summarizeFields(obj, fields) {
+            return fields
+                .filter(f => obj[f] !== undefined && obj[f] !== '')
+                .map(f => `${AUDIT_FIELD_LABEL[f] || f}：${auditVal(f, obj[f])}`)
+                .join('；');
+        }
+
+        // ===== 稽核監聽與渲染 =====
+        let auditListenerAttached = false;
+        function setupAuditListener() {
+            if (auditListenerAttached) return;
+            auditListenerAttached = true;
+            const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'audit_logs');
+            onSnapshot(colRef, (snapshot) => {
+                auditList = [];
+                snapshot.forEach(d => auditList.push({ id: d.id, ...d.data() }));
+                auditList.sort((a, b) => (b.at || 0) - (a.at || 0));
+                refreshAuditOperatorFilter();
+                renderAuditData();
+            }, (err) => console.error("操作記錄監聽異常:", err));
+        }
+
+        function refreshAuditOperatorFilter() {
+            const sel = document.getElementById('audit-filter-operator');
+            if (!sel) return;
+            const cur = sel.value;
+            const names = [...new Set(auditList.map(x => x.operator).filter(Boolean))].sort();
+            sel.innerHTML = '<option value="">👤 全部操作人</option>' +
+                names.map(n => `<option value="${n}">${n}</option>`).join('');
+            sel.value = names.includes(cur) ? cur : '';
+        }
+
+        function fmtAuditTime(ts) {
+            if (!ts) return '-';
+            const d = new Date(ts);
+            const p = n => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+        }
+
+        const AUDIT_ACTION_STYLE = {
+            '新增': 'background:#3f9d6a;color:#fff;',
+            '修改': 'background:#2c4a7c;color:#fff;',
+            '刪除': 'background:#c0392b;color:#fff;'
+        };
+
+        function renderAuditData() {
+            const tbody = document.getElementById('audit-table-body');
+            const empty = document.getElementById('audit-empty-state');
+            const countEl = document.getElementById('audit-count');
+            if (!tbody) return;
+
+            const opVal  = document.getElementById('audit-filter-operator')?.value || '';
+            const modVal = document.getElementById('audit-filter-module')?.value || '';
+            const actVal = document.getElementById('audit-filter-action')?.value || '';
+            const kw     = (document.getElementById('audit-search')?.value || '').toLowerCase().trim();
+
+            const filtered = auditList.filter(x => {
+                if (opVal && x.operator !== opVal) return false;
+                if (modVal && x.module !== modVal) return false;
+                if (actVal && x.action !== actVal) return false;
+                if (kw) {
+                    const hay = `${x.target || ''} ${x.detail || ''} ${x.operator || ''} ${x.module || ''}`.toLowerCase();
+                    if (!hay.includes(kw)) return false;
+                }
+                return true;
+            });
+
+            if (countEl) countEl.innerText = `共 ${filtered.length} 筆`;
+            tbody.innerHTML = '';
+            if (filtered.length === 0) { empty.classList.remove('hidden'); return; }
+            empty.classList.add('hidden');
+
+            const todayStr = new Date().toDateString();
+            filtered.forEach(x => {
+                const isToday = x.at && new Date(x.at).toDateString() === todayStr;
+                const style = AUDIT_ACTION_STYLE[x.action] || 'background:#e2e2e2;color:#3E2F28;';
+                const tr = document.createElement('tr');
+                tr.className = `transition border-l-4 ${isToday ? 'bg-[#A08070]/10 border-[#A08070]' : 'border-transparent hover:bg-white/25'}`;
+                tr.innerHTML = `
+                    <td class="p-3.5 font-mono tabular-nums whitespace-nowrap text-[#3E2F28]/85">${fmtAuditTime(x.at)}</td>
+                    <td class="p-3.5 whitespace-nowrap">
+                        <span class="bg-[#3E2F28]/8 text-[#3E2F28] px-2 py-1 rounded-lg font-extrabold text-[11px] border border-[#3E2F28]/15">👤 ${x.operator || '-'}</span>
+                    </td>
+                    <td class="p-3.5 text-center">
+                        <span class="px-2.5 py-1 rounded-lg font-bold text-[11px] whitespace-nowrap" style="${style}">${x.action || '-'}</span>
+                    </td>
+                    <td class="p-3.5 font-bold text-[11px] whitespace-nowrap">${x.module || '-'}</td>
+                    <td class="p-3.5 font-bold text-[#3E2F28]">${x.target || '-'}</td>
+                    <td class="p-3.5 text-[#3E2F28]/80 break-words min-w-[280px]" style="font-size:0.75rem;line-height:1.6;">${x.detail || '<span class="italic text-[#3E2F28]/40">—</span>'}</td>
+                    <td class="p-3.5 text-center">
+                        <button onclick="guardDeleteAudit('${x.id}')" class="p-1.5 rounded bg-red-50 text-red-600 hover:bg-red-100 transition border border-red-200" title="刪除此筆記錄（需操作密碼）">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                            </svg>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        window.renderAuditData = renderAuditData;
+
+        // ===== 操作記錄刪除（需操作密碼） =====
+        function guardDeleteAudit(id) {
+            requireOpPassword('刪除操作記錄需輸入操作密碼', async () => {
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'audit_logs', id);
+                    await deleteDoc(docRef);
+                    showToast("🗑️ 已刪除該筆操作記錄");
+                } catch (err) {
+                    console.error("操作記錄刪除失敗:", err);
+                    showToast("移除失敗", "error");
+                }
+            });
+        }
+        window.guardDeleteAudit = guardDeleteAudit;
+
+        function guardClearAudit() {
+            const opVal  = document.getElementById('audit-filter-operator')?.value || '';
+            const modVal = document.getElementById('audit-filter-module')?.value || '';
+            const actVal = document.getElementById('audit-filter-action')?.value || '';
+            const kw     = (document.getElementById('audit-search')?.value || '').toLowerCase().trim();
+
+            const targets = auditList.filter(x => {
+                if (opVal && x.operator !== opVal) return false;
+                if (modVal && x.module !== modVal) return false;
+                if (actVal && x.action !== actVal) return false;
+                if (kw) {
+                    const hay = `${x.target || ''} ${x.detail || ''} ${x.operator || ''} ${x.module || ''}`.toLowerCase();
+                    if (!hay.includes(kw)) return false;
+                }
+                return true;
+            });
+
+            if (targets.length === 0) { showToast("目前沒有可刪除的記錄", "info"); return; }
+            if (!confirm(`確定要刪除目前篩選出的 ${targets.length} 筆操作記錄嗎？此動作無法復原。`)) return;
+
+            requireOpPassword(`刪除 ${targets.length} 筆操作記錄需輸入操作密碼`, async () => {
+                try {
+                    const batch = writeBatch(db);
+                    targets.forEach(x => {
+                        batch.delete(doc(db, 'artifacts', appId, 'public', 'data', 'audit_logs', x.id));
+                    });
+                    await batch.commit();
+                    showToast(`🗑️ 已刪除 ${targets.length} 筆操作記錄`);
+                } catch (err) {
+                    console.error("批次刪除操作記錄失敗:", err);
+                    showToast("批次刪除失敗", "error");
+                }
+            });
+        }
+        window.guardClearAudit = guardClearAudit;
+
+        /* ==========================================
            📓 四方商戶帳密（Notebook）模組邏輯
            ========================================== */
         
+        // ===== 是否為管理員（僅管理員可修改／刪除／拖移商戶帳密） =====
+        function isAdminOperator() {
+            return currentOperator() === '管理員';
+        }
+        window.isAdminOperator = isAdminOperator;
+
+        // ===== 帳密遮罩：永遠不顯示明文，只提供複製 =====
+        function secretCell(id, field, val, label) {
+            const safe = (val || '').replace(/'/g, "\\'");
+            if (!val) return '<span class="text-[#3E2F28]/40">-</span>';
+            return `<div class="flex items-center gap-1.5">
+                        <span class="tracking-[0.2em] text-[#3E2F28]/70 select-none">●●●●●●</span>
+                        <button onclick="copyTextVal('${safe}', '${label}')" class="opacity-50 hover:opacity-100 transition-opacity text-[11px]" title="複製${label}">📋</button>
+                    </div>`;
+        }
+
+        function guardEditNotebook(id) {
+            requireOpPassword('修改商戶帳密需輸入操作密碼', () => openEditNotebookModal(id));
+        }
+        function guardDeleteNotebook(id, merchant) {
+            requireOpPassword('刪除商戶帳密需輸入操作密碼', () => triggerDeleteNotebook(id, merchant));
+        }
+        window.guardEditNotebook = guardEditNotebook;
+        window.guardDeleteNotebook = guardDeleteNotebook;
+
         function openAddNotebookModal() {
             document.getElementById('notebook-modal-title').innerText = "新增四方商戶帳密";
             document.getElementById('notebook-entry-id').value = "";
@@ -2328,16 +2824,22 @@
                 updatedAt: Date.now()
             };
 
+            const NB_AUDIT_FIELDS = ['dual','merchant','channelName','channelTitle','keyword','subAccount','subPassword','loginUrl','rowColor'];
+
             try {
                 if (id) {
+                    const before = notebookList.find(e => e.id === id) || {};
                     const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'notebook_entries', id);
                     await updateDoc(docRef, payload);
+                    const diff = diffFields(before, payload, NB_AUDIT_FIELDS);
+                    logAudit('商戶帳密', '修改', merchant, diff || '（內容未變更）');
                     showToast("✅ 已成功儲存四方帳密修改！");
                 } else {
                     payload.sortOrder = maxSortOrder + 1;
                     payload.createdAt = Date.now();
                     const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'notebook_entries');
                     await addDoc(colRef, payload);
+                    logAudit('商戶帳密', '新增', merchant, summarizeFields(payload, NB_AUDIT_FIELDS));
                     showToast("🎉 已成功建立商戶帳密資訊！");
                 }
                 closeNotebookModal();
@@ -2361,9 +2863,11 @@
 
         async function executeDeleteNotebook() {
             if (!pendingNotebookIdToDelete) return;
+            const before = notebookList.find(e => e.id === pendingNotebookIdToDelete) || {};
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'notebook_entries', pendingNotebookIdToDelete);
                 await deleteDoc(docRef);
+                logAudit('商戶帳密', '刪除', before.merchant || '-', summarizeFields(before, ['dual','merchant','channelName','channelTitle','keyword','subAccount','subPassword','loginUrl','rowColor']));
                 showToast("🗑️ 商戶帳密已成功自雲端刪除");
                 closeDeleteNotebookModal();
             } catch (err) {
@@ -2418,15 +2922,21 @@
                 emptyState.classList.remove('hidden');
             } else {
                 emptyState.classList.add('hidden');
+            const nbAdmin = isAdminOperator();
+
                 filtered.forEach(row => {
                     const tr = document.createElement('tr');
-                    tr.setAttribute('draggable', 'true');
-                    
-                    // 绑定拖拽事件到商戶表格行上
-                    tr.addEventListener('dragstart', (e) => handleNotebookDragStart(e, row.id));
-                    tr.addEventListener('dragover', handleNotebookDragOver);
-                    tr.addEventListener('drop', (e) => handleNotebookDrop(e, row.id));
-                    tr.addEventListener('dragend', handleNotebookDragEnd);
+
+                    // 拖拽排序：僅管理員可用
+                    if (nbAdmin) {
+                        tr.setAttribute('draggable', 'true');
+                        tr.addEventListener('dragstart', (e) => handleNotebookDragStart(e, row.id));
+                        tr.addEventListener('dragover', handleNotebookDragOver);
+                        tr.addEventListener('drop', (e) => handleNotebookDrop(e, row.id));
+                        tr.addEventListener('dragend', handleNotebookDragEnd);
+                    } else {
+                        tr.setAttribute('draggable', 'false');
+                    }
                     
                     const rowBg = row.rowColor === 'green'
                         ? 'background:rgba(154,168,150,0.22);'
@@ -2481,23 +2991,20 @@
                         </td>
                         <!-- 驗證關鍵字 -->
                         <td class="p-3.5">
-                            <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-extrabold text-[11px] border border-emerald-300/30">
-                                ${row.keyword || '無'}
-                            </span>
-                        </td>
-                        <!-- 子帳號 -->
-                        <td class="p-3.5 font-mono select-all font-semibold">
-                            <div class="flex items-center gap-1">
-                                <span>${row.subAccount || '-'}</span>
-                                <button onclick="copyTextVal('${row.subAccount || ''}', '子帳號')" class="opacity-40 hover:opacity-100 transition-opacity ml-1 text-[10px]" title="複製帳號">📋</button>
-                            </div>
-                        </td>
-                        <!-- 子帳密碼 (直接明文) -->
-                        <td class="p-3.5 font-mono select-all font-semibold">
                             <div class="flex items-center gap-1.5">
-                                <span>${row.subPassword || '-'}</span>
-                                <button onclick="copyTextVal('${row.subPassword || ''}', '子帳密碼')" class="opacity-40 hover:opacity-100 transition-opacity text-[10px]" title="複製密碼">📋</button>
+                                <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-extrabold text-[11px] border border-emerald-300/30">
+                                    ${row.keyword || '無'}
+                                </span>
+                                ${row.keyword ? `<button onclick="event.stopPropagation(); copyTextVal('${(row.keyword || '').replace(/'/g, "\\'")}', '驗證關鍵字')" class="opacity-50 hover:opacity-100 transition-opacity text-[11px]" title="複製驗證關鍵字">📋</button>` : ''}
                             </div>
+                        </td>
+                        <!-- 子帳號（遮罩） -->
+                        <td class="p-3.5 font-mono font-semibold">
+                            ${secretCell(row.id, 'subAccount', row.subAccount, '子帳號')}
+                        </td>
+                        <!-- 子帳密碼（遮罩） -->
+                        <td class="p-3.5 font-mono font-semibold">
+                            ${secretCell(row.id, 'subPassword', row.subPassword, '子帳密碼')}
                         </td>
                         <!-- 登入網址 -->
                         <td class="p-3.5">
@@ -2506,16 +3013,17 @@
                                 ${row.loginUrl ? `<button onclick="copyTextVal('${row.loginUrl}', '登入網址')" class="opacity-40 hover:opacity-100 transition-opacity text-[10px]" title="複製網址">📋</button>` : ''}
                             </div>
                         </td>
-                        <!-- 操作按鈕 -->
+                        <!-- 操作按鈕（僅管理員可見） -->
                         <td class="p-3.5 text-center">
+                            ${nbAdmin ? `
                             <div class="flex items-center justify-center gap-1.5 pointer-events-auto" onclick="event.stopPropagation();">
-                                <button onclick="openEditNotebookModal('${row.id}')" class="p-1.5 rounded bg-white hover:bg-white/80 transition text-blue-700 border border-blue-200" title="編輯">
+                                <button onclick="guardEditNotebook('${row.id}')" class="p-1.5 rounded bg-white hover:bg-white/80 transition text-blue-700 border border-blue-200" title="編輯（需操作密碼）">
                                     ✏️
                                 </button>
-                                <button onclick="triggerDeleteNotebook('${row.id}', '${row.merchant}')" class="p-1.5 rounded bg-red-50 hover:bg-red-100 transition text-red-600 border border-red-200" title="刪除">
+                                <button onclick="guardDeleteNotebook('${row.id}', '${(row.merchant || '').replace(/'/g, "\\'")}')" class="p-1.5 rounded bg-red-50 hover:bg-red-100 transition text-red-600 border border-red-200" title="刪除（需操作密碼）">
                                     🗑️
                                 </button>
-                            </div>
+                            </div>` : `<span class="text-[10px] text-[#3E2F28]/35 italic">僅管理員</span>`}
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -2550,6 +3058,56 @@
             const style = SL_STATUS_STYLE[val] || 'background:#e2e2e2;color:#3E2F28;';
             return `<span class="px-2.5 py-1 rounded-lg font-bold text-[11px] whitespace-nowrap" style="${style}">${val}</span>`;
         }
+
+        // 表格內直接切換狀態的下拉（免點進 Modal）
+        const SL_STATUS_OPTIONS = Object.keys(SL_STATUS_STYLE);
+        function statusSelect(rowId, field, val) {
+            const cur = val || '';
+            const style = SL_STATUS_STYLE[cur] || 'background:#e2e2e2;color:#3E2F28;';
+            const opts = SL_STATUS_OPTIONS.map(o =>
+                `<option value="${o}" ${o === cur ? 'selected' : ''}>${o}</option>`).join('');
+            // 若原本無值／值不在清單中，用隱藏選項承接，不在下拉清單中出現空白列
+            const ghost = SL_STATUS_OPTIONS.includes(cur)
+                ? ''
+                : `<option value="${cur}" selected hidden>${cur || '—'}</option>`;
+            return `<select draggable="false"
+                        onmousedown="event.stopPropagation();"
+                        onclick="event.stopPropagation();"
+                        onchange="event.stopPropagation(); updateSwitchlogStatus('${rowId}','${field}', this.value)"
+                        class="px-2 py-1 rounded-lg font-bold text-[11px] text-center border-0 outline-none cursor-pointer appearance-none max-w-[130px]"
+                        style="${style}">${ghost}${opts}</select>`;
+        }
+
+        // 狀態欄：下拉 + 專屬備忘浮窗按鈕
+        function statusCell(row, field) {
+            const noteField = field === 'internal' ? 'noteInternal' : 'noteExternal';
+            const hasNote = row[noteField] && row[noteField].trim();
+            const hover = hasNote
+                ? `onmouseenter="showNoteTip(event,'${row.id}','${noteField}')" onmousemove="moveNoteTip(event)" onmouseleave="hideNoteTip()"`
+                : `title="新增${field === 'internal' ? '內部' : '外部'}狀態備忘"`;
+            return `<div class="flex items-center justify-center gap-1">
+                        ${statusSelect(row.id, field, row[field])}
+                        <span class="cursor-pointer align-middle text-[13px] ${hasNote ? 'hover:opacity-70' : 'opacity-30 hover:opacity-70'}"
+                              onclick="event.stopPropagation(); openSwitchlogNote('${row.id}','${noteField}')" ${hover}>📝</span>
+                    </div>`;
+        }
+
+        async function updateSwitchlogStatus(id, field, value) {
+            const entry = switchlogList.find(e => e.id === id);
+            const prev = entry ? entry[field] : '';
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'switchlog_entries', id);
+                await updateDoc(docRef, { [field]: value, updatedAt: Date.now() });
+                logAudit('開關記錄', '修改', entry?.merchant || '-',
+                    `${field === 'internal' ? '內部' : '外部'}：${prev || '（空）'} → ${value || '（空）'}（表格快速切換）`);
+                showToast(`✅ ${field === 'internal' ? '內部' : '外部'}狀態已更新為「${value || '空白'}」`);
+            } catch (err) {
+                console.error("狀態更新失敗:", err);
+                showToast("雲端同步失敗", "error");
+                renderSwitchlogData();
+            }
+        }
+        window.updateSwitchlogStatus = updateSwitchlogStatus;
 
         // 下發限制 徽章配色（對應下拉選項）
         const SL_LIMIT_STYLE = {
@@ -2692,12 +3250,18 @@
 
             const searchVal = (document.getElementById('switchlog-search').value || "").toLowerCase().trim();
 
+            const statusVal = (document.getElementById('switchlog-filter-status')?.value || "");
+
             const filtered = switchlogList.filter(item => {
-                return !searchVal ||
+                const hitSearch = !searchVal ||
                     (item.merchant || "").toLowerCase().includes(searchVal) ||
                     (item.remark ? slRemarkText(item.remark).toLowerCase().includes(searchVal) : false) ||
                     (item.note || "").toLowerCase().includes(searchVal) ||
                     (item.time || "").toLowerCase().includes(searchVal);
+                if (!hitSearch) return false;
+
+                if (!statusVal) return true;
+                return (item.internal || "") === statusVal || (item.external || "") === statusVal;
             });
 
             tbody.innerHTML = "";
@@ -2724,8 +3288,8 @@
                 tr.setAttribute('style', slRowBg(row.rowColor));
                 tr.innerHTML = `
                     <td class="p-3 text-center font-bold">${row.merchant || ''} <span class="cursor-pointer align-middle ${row.note && row.note.trim() ? 'hover:opacity-70' : 'opacity-30 hover:opacity-70'}" onclick="event.stopPropagation(); openSwitchlogNote('${row.id}')" ${row.note && row.note.trim() ? `onmouseenter="showNoteTip(event,'${row.id}')" onmousemove="moveNoteTip(event)" onmouseleave="hideNoteTip()"` : 'title="新增備忘"'}>📝</span></td>
-                    <td class="p-3 text-center">${statusBadge(row.internal)}</td>
-                    <td class="p-3 text-center">${statusBadge(row.external)}</td>
+                    <td class="p-3 text-center">${statusCell(row, 'internal')}</td>
+                    <td class="p-3 text-center">${statusCell(row, 'external')}</td>
                     <td class="p-3 text-center font-mono tabular-nums">${row.deposit || '-'}</td>
                     <td class="p-3 text-center">${limitBadge(row.time)}</td>
                     <td class="px-1 py-3 text-center">${switchBadge(row.payout)}</td>
@@ -2795,16 +3359,22 @@
 
             const maxSortOrder = switchlogList.length > 0 ? Math.max(...switchlogList.map(i => i.sortOrder || 0)) : 0;
 
+            const SL_AUDIT_FIELDS = ['merchant','internal','external','deposit','time','payout','dispatch','remark','rowColor'];
+
             try {
                 if (id) {
+                    const before = switchlogList.find(e => e.id === id) || {};
                     const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'switchlog_entries', id);
                     await updateDoc(docRef, payload);
+                    const diff = diffFields(before, payload, SL_AUDIT_FIELDS);
+                    logAudit('開關記錄', '修改', payload.merchant, diff || '（內容未變更）');
                     showToast("✅ 已成功儲存開關記錄修改！");
                 } else {
                     payload.sortOrder = maxSortOrder + 1;
                     payload.createdAt = Date.now();
                     const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'switchlog_entries');
                     await addDoc(colRef, payload);
+                    logAudit('開關記錄', '新增', payload.merchant, summarizeFields(payload, SL_AUDIT_FIELDS));
                     showToast("🎉 已成功建立第三方開關記錄！");
                 }
                 closeSwitchlogModal();
@@ -2828,9 +3398,12 @@
 
         async function executeDeleteSwitchlog() {
             if (!pendingSwitchlogIdToDelete) return;
+            const before = switchlogList.find(e => e.id === pendingSwitchlogIdToDelete) || {};
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'switchlog_entries', pendingSwitchlogIdToDelete);
                 await deleteDoc(docRef);
+                logAudit('開關記錄', '刪除', before.merchant || '-',
+                    summarizeFields(before, ['internal','external','deposit','time','payout','dispatch','remark']));
                 showToast("🗑️ 開關記錄已成功自雲端刪除");
                 closeDeleteSwitchlogModal();
             } catch (err) {
@@ -2889,14 +3462,29 @@
             setTimeout(() => { slDragJustEnded = false; }, 60);
         }
         /* ===== 額外浮窗：便利貼備忘 ===== */
-        function openSwitchlogNote(id) {
+        const SL_NOTE_LABEL = {
+            note:         { title: '備忘浮窗',       ph: '在這裡隨手記錄這筆商戶的備忘、待辦或臨時提醒…' },
+            noteInternal: { title: '內部狀態備忘',   ph: '記錄內部通道狀態的原因、時間點或後續處理…' },
+            noteExternal: { title: '外部狀態備忘',   ph: '記錄外部通道狀態的原因、時間點或後續處理…' }
+        };
+
+        function openSwitchlogNote(id, field) {
+            field = field || 'note';
             const entry = switchlogList.find(e => e.id === id);
             if (!entry) return;
+            const meta = SL_NOTE_LABEL[field] || SL_NOTE_LABEL.note;
             document.getElementById('sl-note-id').value = entry.id;
-            document.getElementById('sl-note-merchant').innerText = entry.merchant || '—';
-            document.getElementById('sl-note-text').value = entry.note || '';
+            document.getElementById('sl-note-field').value = field;
+            document.getElementById('sl-note-title').innerText = meta.title;
+            const sub = field === 'note'
+                ? (entry.merchant || '—')
+                : `${entry.merchant || '—'}　目前狀態：${(field === 'noteInternal' ? entry.internal : entry.external) || '—'}`;
+            document.getElementById('sl-note-merchant').innerText = sub;
+            const ta = document.getElementById('sl-note-text');
+            ta.placeholder = meta.ph;
+            ta.value = entry[field] || '';
             document.getElementById('switchlog-note-popup').classList.remove('hidden');
-            setTimeout(() => document.getElementById('sl-note-text').focus(), 50);
+            setTimeout(() => ta.focus(), 50);
         }
         function closeSwitchlogNote() {
             document.getElementById('switchlog-note-popup').classList.add('hidden');
@@ -2904,10 +3492,14 @@
         async function saveSwitchlogNote() {
             const id = document.getElementById('sl-note-id').value;
             if (!id) return;
+            const field = document.getElementById('sl-note-field').value || 'note';
             const note = document.getElementById('sl-note-text').value;
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'switchlog_entries', id);
-                await updateDoc(docRef, { note, updatedAt: Date.now() });
+                await updateDoc(docRef, { [field]: note, updatedAt: Date.now() });
+                const ent = switchlogList.find(e => e.id === id) || {};
+                logAudit('開關記錄', '修改', ent.merchant || '-',
+                    `${AUDIT_FIELD_LABEL[field] || field} 已更新：${auditVal(field, note)}`);
                 showToast("📝 備忘已儲存至雲端！");
                 closeSwitchlogNote();
             } catch (err) {
@@ -2917,11 +3509,12 @@
         }
 
         /* ===== 備忘 hover 即時預覽 ===== */
-        function showNoteTip(e, id) {
+        function showNoteTip(e, id, field) {
+            field = field || 'note';
             const entry = switchlogList.find(x => x.id === id);
-            if (!entry || !entry.note || !entry.note.trim()) return;
+            if (!entry || !entry[field] || !entry[field].trim()) return;
             const tip = document.getElementById('sl-note-tooltip');
-            tip.textContent = entry.note;
+            tip.textContent = entry[field];
             tip.classList.remove('hidden');
             moveNoteTip(e);
         }
@@ -2991,12 +3584,14 @@
           const btnVcotc = document.getElementById('tab-btn-vcotc');
           const btnNotebook = document.getElementById('tab-btn-notebook');
           const btnSwitchlog = document.getElementById('tab-btn-switchlog');
-          
+          const btnAuditlog = document.getElementById('tab-btn-auditlog');
+
           const tabSummary = document.getElementById('main-tab-summary');
           const tabDetails = document.getElementById('main-tab-details');
           const tabVcotc = document.getElementById('main-tab-vcotc');
           const tabNotebook = document.getElementById('main-tab-notebook');
           const tabSwitchlog = document.getElementById('main-tab-switchlog');
+          const tabAuditlog = document.getElementById('main-tab-auditlog');
           const formulaCard = document.getElementById('accounting-formula-card');
 
           const baseClass = "whitespace-nowrap px-5 py-2 rounded-xl text-xs font-bold transition-all";
@@ -3008,12 +3603,14 @@
           btnVcotc.className = inactiveClass + " flex items-center gap-1.5";
           btnNotebook.className = inactiveClass + " flex items-center gap-1.5";
           btnSwitchlog.className = inactiveClass + " flex items-center gap-1.5";
+          btnAuditlog.className = inactiveClass + " flex items-center gap-1.5";
 
           tabSummary.classList.add('hidden');
           tabDetails.classList.add('hidden');
           tabVcotc.classList.add('hidden');
           tabNotebook.classList.add('hidden');
           tabSwitchlog.classList.add('hidden');
+          tabAuditlog.classList.add('hidden');
           formulaCard.classList.add('hidden');
 
           if (tabId === 'summary') {
@@ -3032,11 +3629,17 @@
           } else if (tabId === 'switchlog') {
             btnSwitchlog.className = activeClass + " flex items-center gap-1.5";
             tabSwitchlog.classList.remove('hidden');
+          } else if (tabId === 'auditlog') {
+            btnAuditlog.className = activeClass + " flex items-center gap-1.5";
+            tabAuditlog.classList.remove('hidden');
+            renderAuditData();
           }
         }
 
         function closeAddDetailModal() {
             document.getElementById('add-detail-modal').classList.add('hidden');
+            editingDetailId = "";
+            if (typeof setDetailModalMode === 'function') setDetailModalMode(false);
         }
         function openAddChannelModal() {
             document.getElementById('add-channel-modal').classList.remove('hidden');
@@ -3148,11 +3751,55 @@
             }
         };
 
+        let editingVcotcId = "";
+
+        function setVcotcModalMode(isEdit) {
+            const t = document.getElementById('vcotc-modal-title');
+            const sub = document.getElementById('vcotc-modal-subtitle');
+            const btn = document.getElementById('vcotc-modal-submit');
+            if (t) t.innerText = isEdit ? '編輯 VCOTC 明細' : '新增 VCOTC 明細';
+            if (sub) sub.innerText = isEdit ? '修改後總額將依差額自動重算' : '手動輸入一筆交易紀錄';
+            if (btn) btn.innerText = isEdit ? '確認更新' : '確認新增';
+        }
+
+        function vcotcClearForm() {
+            ['vcotc-new-date','vcotc-new-channelno','vcotc-new-merchantno',
+             'vcotc-new-rmb','vcotc-new-uqty','vcotc-new-rate','vcotc-new-remark'].forEach(id => {
+                const inp = document.getElementById(id);
+                if (inp) inp.value = '';
+            });
+            const normRadio = document.querySelector('input[name="vcotc-row-color"][value="none"]');
+            if (normRadio) normRadio.checked = true;
+        }
+
         function openVcotcAddModal() {
+            editingVcotcId = "";
+            setVcotcModalMode(false);
+            vcotcClearForm();
+            document.getElementById('vcotc-add-modal').classList.remove('hidden');
+        }
+        function openVcotcEditModal(id) {
+            const row = vcotcData.find(r => r.id === id);
+            if (!row) { showToast("找不到該筆明細", "error"); return; }
+            editingVcotcId = id;
+            setVcotcModalMode(true);
+
+            document.getElementById('vcotc-new-date').value       = row.date || '';
+            document.getElementById('vcotc-new-channelno').value  = row.channelNo || '';
+            document.getElementById('vcotc-new-merchantno').value = row.merchantNo || '';
+            document.getElementById('vcotc-new-rmb').value        = row.rmb ?? '';
+            document.getElementById('vcotc-new-uqty').value       = row.uQty ?? '';
+            document.getElementById('vcotc-new-rate').value       = row.rate ?? '';
+            document.getElementById('vcotc-new-remark').value     = row.remark || '';
+            const radio = document.querySelector(`input[name="vcotc-row-color"][value="${row.rowColor || 'none'}"]`);
+            if (radio) radio.checked = true;
+
             document.getElementById('vcotc-add-modal').classList.remove('hidden');
         }
         function closeVcotcAddModal() {
             document.getElementById('vcotc-add-modal').classList.add('hidden');
+            editingVcotcId = "";
+            setVcotcModalMode(false);
         }
 
         async function submitVcotcAdd() {
@@ -3169,6 +3816,39 @@
 
             const rmbNum  = parseFloat(rmb)  || 0;
             const uQtyNum = parseFloat(uQty) || 0;
+
+            if (editingVcotcId) {
+                const oldRow  = vcotcData.find(r => r.id === editingVcotcId);
+                const oldRMB  = parseFloat(oldRow?.rmb)  || 0;
+                const oldUQty = parseFloat(oldRow?.uQty) || 0;
+                const updRMB  = Math.round((totalRMB  - oldRMB  + rmbNum)  * 1000) / 1000;
+                const updUSDT = Math.round((totalUSDT - oldUQty + uQtyNum) * 1000) / 1000;
+                try {
+                    const { updateDoc, doc, setDoc } = window.fbFns;
+                    await updateDoc(doc(vcotcCol(), editingVcotcId), { date, channelNo, merchantNo, rmb, uQty, rate, remark, rowColor });
+                    await setDoc(vcotcMetaDoc(), { totalRMB: updRMB, totalUSDT: updUSDT });
+                    if (window.logAudit) {
+                        const chg = [];
+                        if (String(oldRow?.date ?? '') !== date) chg.push(`交易日期：${oldRow?.date || '（空）'} → ${date || '（空）'}`);
+                        if (String(oldRow?.channelNo ?? '') !== channelNo) chg.push(`通道單號：${oldRow?.channelNo || '（空）'} → ${channelNo || '（空）'}`);
+                        if (String(oldRow?.merchantNo ?? '') !== merchantNo) chg.push(`商戶單號：${oldRow?.merchantNo || '（空）'} → ${merchantNo || '（空）'}`);
+                        if (oldRMB !== rmbNum) chg.push(`人民幣：${oldRMB} → ${rmbNum}`);
+                        if (oldUQty !== uQtyNum) chg.push(`U數量：${oldUQty} → ${uQtyNum}`);
+                        if (String(oldRow?.rate ?? '') !== rate) chg.push(`匯率：${oldRow?.rate || '（空）'} → ${rate || '（空）'}`);
+                        if (String(oldRow?.remark ?? '') !== remark) chg.push(`備註：${oldRow?.remark || '（空）'} → ${remark || '（空）'}`);
+                        chg.push(`總額重算 → RMB ${updRMB}／USDT ${updUSDT}`);
+                        window.logAudit('VCOTC', '修改', merchantNo || channelNo || '-', chg.join('；'));
+                    }
+                    closeVcotcAddModal();
+                    vcotcClearForm();
+                    showToast('VCOTC 明細已更新並同步雲端！');
+                } catch (err) {
+                    console.error("VCOTC 明細更新失敗:", err);
+                    showToast("雲端同步失敗", "error");
+                }
+                return;
+            }
+
             const newRMB  = Math.round((totalRMB  + rmbNum)  * 1000) / 1000;
             const newUSDT = Math.round((totalUSDT + uQtyNum) * 1000) / 1000;
 
@@ -3176,6 +3856,8 @@
                 const { addDoc, setDoc } = window.fbFns;
                 await addDoc(vcotcCol(), { date, channelNo, merchantNo, rmb, uQty, rate, remark, rowColor, createdAt: Date.now() });
                 await setDoc(vcotcMetaDoc(), { totalRMB: newRMB, totalUSDT: newUSDT });
+                if (window.logAudit) window.logAudit('VCOTC', '新增', merchantNo || channelNo || '-',
+                    `交易日期：${date || '（空）'}；通道單號：${channelNo || '（空）'}；人民幣：${rmbNum}；U數量：${uQtyNum}；匯率：${rate || '（空）'}；備註：${remark || '（空）'}；總額 → RMB ${newRMB}／USDT ${newUSDT}`);
                 closeVcotcAddModal();
                 ['vcotc-new-date','vcotc-new-channelno','vcotc-new-merchantno',
                  'vcotc-new-rmb','vcotc-new-uqty','vcotc-new-rate','vcotc-new-remark'].forEach(id => {
@@ -3204,6 +3886,8 @@
                     const newUSDT = Math.round((totalUSDT - uQtyNum) * 1000) / 1000;
                     await setDoc(vcotcMetaDoc(), { totalRMB: newRMB, totalUSDT: newUSDT });
                 }
+                if (window.logAudit) window.logAudit('VCOTC', '刪除', row?.merchantNo || row?.channelNo || '-',
+                    `交易日期：${row?.date || '（空）'}；人民幣：${row?.rmb ?? '（空）'}；U數量：${row?.uQty ?? '（空）'}；備註：${row?.remark || '（空）'}`);
                 showToast('已刪除該筆明細並同步雲端');
             } catch (err) {
                 console.error("VCOTC 明細刪除失敗:", err);
@@ -3268,11 +3952,18 @@
                         <td class="p-3.5 text-right font-mono text-[0.86rem] text-[#3E2F28]/60">${vcotcTrimNum(row.rate)}</td>
                         <td class="p-3.5 text-[#3E2F28]/80" style="font-family:'cwTeXYen','LXGW WenKai TC','Noto Serif TC',serif;font-size:0.78rem;letter-spacing:0.02em;">${row.remark || '-'}</td>
                         <td class="p-3.5 text-center">
+                          <div class="flex items-center justify-center gap-1.5">
+                          <button onclick="openVcotcEditModal('${row.id}')" class="p-1.5 rounded bg-[#A08070]/15 text-[#3E2F28] hover:bg-[#A08070]/30 transition border border-[#A08070]/40" title="編輯">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/>
+                            </svg>
+                          </button>
                           <button onclick="vcotcDeleteRow('${row.id}')" class="p-1.5 rounded bg-red-50 text-red-500 hover:bg-red-100 transition border border-red-200" title="刪除">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                               <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
                             </svg>
                           </button>
+                          </div>
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -3408,6 +4099,8 @@
                                 totalUSDT: csvUSDT !== null ? csvUSDT : totalUSDT
                             });
                         }
+                        if (window.logAudit) window.logAudit('VCOTC', '新增', 'CSV 匯入',
+                            `匯入 ${newData.length} 筆明細（檔名：${file.name}）`);
                         showToast(`成功匯入 ${newData.length} 筆 VCOTC 明細並同步雲端！`);
                     } catch (err) {
                         console.error("VCOTC CSV 匯入失敗:", err);
@@ -3422,6 +4115,7 @@
         }
 
         window.openVcotcAddModal = openVcotcAddModal;
+        window.openVcotcEditModal = openVcotcEditModal;
         window.closeVcotcAddModal = closeVcotcAddModal;
         window.submitVcotcAdd = submitVcotcAdd;
         window.vcotcDeleteRow = vcotcDeleteRow;
